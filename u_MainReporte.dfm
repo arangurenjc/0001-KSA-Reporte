@@ -5,7 +5,7 @@ object fMainReport: TfMainReport
   BorderStyle = bsSingle
   Caption = 'Menu Principal Inventario y Reportes'
   ClientHeight = 464
-  ClientWidth = 555
+  ClientWidth = 553
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -24,7 +24,7 @@ object fMainReport: TfMainReport
   object lblExport: TLabel
     Left = 0
     Top = 389
-    Width = 555
+    Width = 553
     Height = 58
     Align = alBottom
     Alignment = taCenter
@@ -57,7 +57,7 @@ object fMainReport: TfMainReport
   object ProgressBar1: TProgressBar
     Left = 0
     Top = 447
-    Width = 555
+    Width = 553
     Height = 17
     Align = alBottom
     Smooth = True
@@ -67,6 +67,7 @@ object fMainReport: TfMainReport
     TabOrder = 1
     Visible = False
     StyleElements = []
+    ExplicitWidth = 555
   end
   object Button1: TButton
     Left = 754
@@ -186,7 +187,7 @@ object fMainReport: TfMainReport
           ParentFont = False
         end
         object wwDBDateTimePicker1: TwwDBDateTimePicker
-          Left = 123
+          Left = 124
           Top = 25
           Width = 95
           Height = 21
