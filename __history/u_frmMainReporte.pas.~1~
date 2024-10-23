@@ -1,0 +1,2040 @@
+unit u_MainReporte;
+
+interface
+
+uses
+  //Estas son puestas por mi segun mis necesidades
+  IniFiles, DBISAMTb, DateUtils, DB, System.Math, System.Threading, Excel2000, ComObj,
+  System.StrUtils,  Vcl.ExtCtrls,
+
+  // Estas son propias de delphi
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.StdCtrls,
+  Vcl.ComCtrls, Vcl.Mask, scControls, scCalendar, Vcl.WinXPickers, vcl.wwdbdatetimepicker,
+  Vcl.Grids, Vcl.DBGrids, vcl.wwdbedit, vcl.wwdotdot, vcl.wwdbcomb, Vcl.WinXPanels;
+
+type
+  TPeriodo = record
+    Periodo : string;
+    FechaI  : TDateTime;
+    FechaF  : TDateTime;
+  end;
+
+  TVendedores=class
+  private
+    FVendedorID : string;
+    FVendedorNa : string;
+
+  public
+    constructor CreateVendedores(const AVendedorID, AVendedorNa : string);
+    property VendedorID : string read FVendedorID write FVendedorID;
+    property VendedorNa : string read FVendedorNa write FVendedorNa;
+  end;
+
+
+  TfMainReport = class(TForm)
+    MainMenu1           : TMainMenu;
+    I1                  : TMenuItem;
+    R1                  : TMenuItem;
+    G1                  : TMenuItem;
+    V1                  : TMenuItem;
+    C1                  : TMenuItem;
+
+    btnCalcular         : TButton;
+    Button2             : TButton;
+    btnExportExcel      : TButton;
+    Button3             : TButton;
+    Button1             : TButton;
+
+    chkStatus_Inv       : TCheckBox;
+    chkStatus_Prov      : TCheckBox;
+    chkData             : TCheckBox;
+
+    wwDBDateTimePicker1 : TwwDBDateTimePicker;
+    wwDBDateTimePicker2 : TwwDBDateTimePicker;
+    dtpFechaPeriodoVentas: TwwDBDateTimePicker;
+
+    Panel1              : TPanel;
+    Memo1               : TMemo;
+    GroupBox1           : TGroupBox;
+
+    Label3              : TLabel;
+    Label2              : TLabel;
+    lblCantPeriodos     : TLabel;
+    lblExport           : TLabel;
+    Label1              : TLabel;
+
+    ProgressBar1        : TProgressBar;
+
+    Edit1               : TEdit;
+
+    CardPanel1          : TCardPanel;
+    cardCompras         : TCard;
+    cardVentas          : TCard;
+    cbVendedores: TwwDBComboBox;
+    chkVendedor: TCheckBox;
+    Label4: TLabel;
+    Label5: TLabel;
+    chkFechaExtendida: TCheckBox;
+
+    procedure FormShow(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure wwDBDateTimePicker1Change(Sender: TObject);
+
+    procedure btnCalcularClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure btnExportExcelClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure c1Click(Sender: TObject);
+    procedure V1Click(Sender: TObject);
+    procedure R1Click(Sender: TObject);
+    procedure chkVendedorClick(Sender: TObject);
+    procedure cbVendedoresChange(Sender: TObject);
+
+
+  private
+    { Private declarations }
+      function encapsularPeriodo(t : TDate) : string;
+      procedure encapsularPeriodo2(t: string);
+
+      function usuarioTieneAcceso: Boolean;
+      function EsFechaValida(Fecha: TDateTime): Boolean;
+
+      procedure getVariableEntorno;
+      procedure calcularPeriodos;
+      procedure calcularReporte(tipo : Integer);
+
+      procedure borrarTablaTmp( IdUser : Integer);
+
+      procedure crearTablaTMP_c( idUser : Integer);
+      procedure crearTablaTMP_V( idUser : Integer);
+
+      procedure crearTablaTMP_Inven( idUser : Integer);
+      procedure crearTablaTMP_Prove( idUser : Integer);
+      procedure crearTablaTMP_Categ( idUser : Integer);
+      procedure crearTablaTMP_SubCa( idUser : Integer);
+      procedure crearTablaTMP_Marca( idUser : Integer);
+      procedure crearTablaTMP_Compr( idUser : Integer);
+      procedure crearTablaTMP_NotaE( idUser : Integer);
+      procedure crearTablaTMP_InvDe( idUser : Integer);
+      procedure crearTablaTMP_VtaAc( idUser : Integer);
+      PROCEDURE crearTablaTMP_VtaDe( idUser : Integer);
+
+      procedure insertTablaTMP_Inven( tabla : string);
+      procedure insertTablaTMP_Prove( tabla : string);
+      procedure insertTablaTMP_Categ( tabla : string);
+      procedure insertTablaTMP_SubCa( tabla : string);
+      procedure insertTablaTMP_Marca( tabla : string);
+      procedure insertTablaTMP_Compr( tabla : string);
+      procedure insertTablaTMP_NotaE( tabla : string);
+      procedure insertTablaTMP_InvDe( tabla : string);
+      procedure insertTablaTMP_VtaAc( tabla : string);
+      procedure insertTablaTMP_VtaDe( tabla : string);
+
+      procedure consultaFinalCompras;
+      procedure consultaFinalVentas;
+
+      procedure ExportToExcel(DBQuery : TDBISAMQuery);
+var
+
+  public
+    { Public declarations }
+    accesoPermitido : Boolean;
+    userName        : string;
+    userIndex       : Integer;
+
+  end;
+
+var
+  fMainReport : TfMainReport;
+
+  archivoINI  : string;
+  tablasBD    : array[1..12] of string;
+  Periodos    : array[1..7] of TPeriodo;  // Array de 7 periodos
+
+  {Periodos desde 1 hasta 6 para los 6 meses de consulta de venta
+   posicion 7 es para la Data Actual si lo requieren.}
+
+  {***************************************
+    Estas son las variables de Entorno}
+  claveCadena,
+  rutaData,
+  rutaTemp,
+  tablaReport,
+  vendedor,
+  report01,
+  report02    : String;
+  tipoReport,
+  nPeriodo    : Integer;
+  fechaInicio : TDate;
+  fechaTope   : TDate;
+  // *************************************
+
+  mesIni, mesFin, yearIni, yearFin : integer;
+
+Const
+  mesesPeriodo: array[1..12] of string = (
+    'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN',
+    'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC');
+
+    BD_INVE = 'B01';   //tmp_Inventario
+    BD_PROV = 'B02';   //tmp_¨Proveedor
+    BD_CATE = 'B03';   //tmp_¨categorias
+    BD_SUBC = 'B04';   //tmp_¨SubCategoria
+    BD_MARC = 'B05';   //tmp_¨Marcas
+    BD_COMP = 'B06';   //tmp_¨Compras
+    BD_NENT = 'B07';   //tmp_¨Nota Entrega
+    BD_INVD = 'B08';   //tmp_¨Inventario Deposito
+    BD_VTAA = 'B09';   //tmp_¨Ventas Acaumuladas
+    BD_VTAD = 'B10';   //tmp_¨Ventas detalle del periodo
+
+    BD_ENDX = 'B50';   //tmp_¨Resultado de todas las consultas Movimiento Compras
+    BD_ENDV = 'B51';   //tmp_¨Resultado de todas las consultas Movimiento Ventas
+
+    CONVD = 11591;
+    CONVM = 91407;
+    CONVY = 19749;
+
+    CLAVE_D = '13567412';
+    CLAVE_M = '73182567';
+    CLAVE_Y = '45163872';
+
+implementation
+
+uses
+  u_DM, uFSplash ;
+
+{$R *.dfm}
+
+
+procedure TfMainReport.borrarTablaTmp(IdUser : Integer);
+var
+  Query     : TDBISAMQuery;
+  i         : Integer;
+  tablaName : string;
+
+begin
+  tablasBD[1] :=  IntToStr(IdUser) + BD_INVE ;   //tmp_Inventario
+  tablasBD[2] :=  IntToStr(IdUser) + BD_PROV ;   //tmp_¨Proveedor
+  tablasBD[3] :=  IntToStr(IdUser) + BD_CATE ;   //tmp_¨categorias
+  tablasBD[4] :=  IntToStr(IdUser) + BD_SUBC ;   //tmp_¨SubCategoria
+  tablasBD[5] :=  IntToStr(IdUser) + BD_MARC ;   //tmp_¨Marcas
+  tablasBD[6] :=  IntToStr(IdUser) + BD_COMP ;   //tmp_¨Compras
+  tablasBD[7] :=  IntToStr(IdUser) + BD_NENT ;   //tmp_¨Nota Entrega
+  tablasBD[8] :=  IntToStr(IdUser) + BD_INVD ;   //tmp_¨Inventario Deposito
+  tablasBD[9] :=  IntToStr(IdUser) + BD_VTAA ;   //tmp_¨Ventas Acaumuladas
+  tablasBD[10] :=  IntToStr(IdUser) + BD_VTAD ;   //tmp_¨Ventas Acaumuladas
+
+  tablasBD[11] :=  IntToStr(IdUser) + BD_ENDX ;   //tmp_¨Todas las conultas agrupadas
+  tablasBD[12] :=  IntToStr(IdUser) + BD_ENDV ;   //tmp_¨Ventas Acaumuladas
+
+  Query := TDBISAMQuery.Create(nil);
+  try
+    Query.DatabaseName := u_DM.DM.a2DATA.DatabaseName; // Asegúrate de asignar la base de datos correcta
+    for i := 0 to High(tablasBD) do
+    begin
+      tablaName := tablasBD[i];
+      try
+        // Ejecuta el comando SQL para eliminar la tabla
+        Query.SQL.Clear;
+        Query.SQL.Text := 'DROP TABLE IF EXISTS ' + Chr(34) + rutaTemp + '\' + tablaName + Chr(34);
+        Query.ExecSQL;
+      except
+        on E: Exception do
+          ShowMessage('Error eliminando tabla ' + tablaName + ': ' + E.Message);
+      end;
+    end;
+  finally
+    Query.Free;
+  end;
+end;
+
+
+
+procedure TfMainReport.btnCalcularClick(Sender: TObject);
+begin
+  if CardPanel1.ActiveCardIndex  = 1 then
+  begin
+    if dtpFechaPeriodoVentas.Date < EncodeDate(1990,1,1) then
+      Exit;
+    if chkVendedor.Checked and (cbVendedores.ItemIndex < 0) then
+      Exit;
+      calcularReporte(tipoReport);
+  end
+  else
+    calcularReporte(tipoReport);
+
+end;
+
+
+procedure TfMainReport.btnExportExcelClick(Sender: TObject);
+begin
+  btnCalcular.Enabled     := False;
+  btnExportExcel.Enabled  := False;
+  lblExport.Caption       := 'Espere... Generando Exportación de Datos';
+  lblExport.Visible       := True;
+
+  with DM.SQL_Final do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    SQL.Add('SELECT * FROM "' + rutaTemp + '\' + tablaReport + '"');
+    Open;
+  end;
+
+  if DM.SQL_Final.RecordCount > 0 then
+  begin
+    ExportToExcel(DM.SQL_Final);
+  end
+  else
+    MessageBox(0, 'Archivo sin información', 'Warning', MB_OK);
+
+  lblExport.Visible   := False;
+  btnCalcular.Enabled := True;
+   DM.SQL_Final.Close;
+end;
+
+
+procedure TfMainReport.Button1Click(Sender: TObject);
+begin
+  encapsularPeriodo(wwDBDateTimePicker2.Date);
+end;
+
+
+procedure TfMainReport.Button2Click(Sender: TObject);
+begin
+  encapsularPeriodo2(Edit1.Text);
+end;
+
+
+procedure TfMainReport.Button3Click(Sender: TObject);
+begin
+  //-------------------------------------------
+end;
+
+
+procedure TfMainReport.c1Click(Sender: TObject);
+begin
+  tipoReport := 1;
+
+  if not CardPanel1.Visible then
+  begin
+    CardPanel1.Visible          := True;
+    CardPanel1.ActiveCardIndex  := 0;
+
+    if not Panel1.Visible then
+      Panel1.Visible            := True;
+  end
+  else
+    CardPanel1.ActiveCardIndex  := 0;
+
+end;
+
+
+procedure TfMainReport.V1Click(Sender: TObject);
+begin
+  tipoReport := 2;
+
+  if not CardPanel1.Visible then
+  begin
+    CardPanel1.Visible          := True;
+    CardPanel1.ActiveCardIndex  := 1;
+
+    if not Panel1.Visible then
+      Panel1.Visible            := True;
+  end
+  else
+    CardPanel1.ActiveCardIndex  := 1;
+
+  btnCalcular.Enabled := True;
+end;
+
+
+
+procedure TfMainReport.calcularPeriodos;
+var
+  selectedMonth, selectedYear : Integer;
+  I, indexCombo, dias : Integer;
+
+begin
+  selectedMonth := MonthOf(wwDBDateTimePicker1.Date);
+  selectedYear  := YearOf(wwDBDateTimePicker1.Date);
+  dias          := DaysBetween(wwDBDateTimePicker1.Date, wwDBDateTimePicker1.MaxDate);
+  indexCombo    := Trunc(Roundto( (dias/ 30),0));
+   lblCantPeriodos.Caption := IntToStr(indexCombo);
+
+  for I := 1 to indexCombo  do
+  begin
+    periodos[I].Periodo := mesesPeriodo[selectedMonth] + '-' + IntToStr(selectedYear);
+    Periodos[I].FechaI  := EncodeDate(selectedYear,selectedMonth,1);
+    Periodos[I].FechaF  := EndOfAMonth(YearOf(Periodos[I].FechaI), MonthOf(Periodos[I].FechaI));
+
+    inc(selectedMonth);
+    if selectedMonth > High(mesesPeriodo) then
+    begin
+      inc(selectedYear);
+      selectedMonth := 1;
+    end;
+  end;
+  periodos[7].Periodo := 'DATA';
+  Periodos[7].FechaI  := EncodeDate(YearOf(Now),MonthOf(Now),1);
+  Periodos[7].FechaF  := EndOfAMonth(YearOf(Periodos[7].FechaI), MonthOf(Periodos[7].FechaI));
+
+end;
+
+
+procedure TfMainReport.calcularReporte(tipo : Integer);
+var
+  tareaInsert : ITask;
+begin
+  btnCalcular.Enabled := False;
+
+  tareaInsert := TTask.Create(
+    procedure
+    begin
+      TThread.Synchronize(nil,
+        procedure
+        var
+          i: integer;
+
+        begin
+          i := 0;
+          progressBar1.Visible := True;
+
+          while (i < ProgressBar1.Max) do
+          begin
+            if i = ProgressBar1.Max then
+              i := 0
+            else
+              inc(i);
+          end;
+        end);
+
+      if tipo = 1 then
+      begin
+        crearTablaTMP_c(userIndex);
+        insertTablaTMP_Inven(#34 + rutaTemp + '\' + tablasBD[1] + #34);
+        insertTablaTMP_Prove(#34 + rutaTemp + '\' + tablasBD[2] + #34);
+        insertTablaTMP_Categ(#34 + rutaTemp + '\' + tablasBD[3] + #34);
+        insertTablaTMP_SubCa(#34 + rutaTemp + '\' + tablasBD[4] + #34);
+        insertTablaTMP_Marca(#34 + rutaTemp + '\' + tablasBD[5] + #34);
+        insertTablaTMP_Compr(#34 + rutaTemp + '\' + tablasBD[6] + #34);
+        insertTablaTMP_NotaE(#34 + rutaTemp + '\' + tablasBD[7] + #34);
+        insertTablaTMP_InvDe(#34 + rutaTemp + '\' + tablasBD[8] + #34);
+        insertTablaTMP_VtaAc(#34 + rutaTemp + '\' + tablasBD[9] + #34);
+        tablaReport := tablasBD[11];
+        consultaFinalCompras;
+      end
+      else
+      begin
+        crearTablaTMP_v(userIndex);
+        insertTablaTMP_Inven(#34 + rutaTemp + '\' + tablasBD[1] + #34);
+        insertTablaTMP_Categ(#34 + rutaTemp + '\' + tablasBD[3] + #34);
+        insertTablaTMP_SubCa(#34 + rutaTemp + '\' + tablasBD[4] + #34);
+        insertTablaTMP_VtaDe(#34 + rutaTemp + '\' + tablasBD[10] + #34);
+
+        tablaReport := tablasBD[12];
+        consultaFinalVentas;
+        btnExportExcel.Enabled := True;
+      end;
+
+      TThread.Synchronize(nil,
+        procedure
+        var
+          respuesta: integer;
+        begin
+          tareaInsert.Cancel;
+          progressBar1.Visible := False;
+
+          respuesta := MessageDlg('Consulta Finalizada...',TMsgDlgType.mtInformation,
+                              [TMsgDlgBtn.mbOK], 0);
+          btnExportExcel.Enabled := True;
+
+        end);
+    end);
+  tareaInsert.Start;
+
+end;
+
+procedure TfMainReport.cbVendedoresChange(Sender: TObject);
+var
+  infoVendedor : TVendedores;
+
+begin
+
+  infoVendedor  := TVendedores(cbVendedores.Items.Objects[cbVendedores.ItemIndex]);
+  vendedor      := infoVendedor.FVendedorID;
+
+end;
+
+procedure TfMainReport.chkVendedorClick(Sender: TObject);
+var
+   vendID, vendNom : string;
+
+begin
+  if chkVendedor.Checked  then
+  begin
+    cbVendedores.Enabled := True;
+    cbVendedores.Clear;
+    with dm.SQl_Vendedor do
+    begin
+      Close;
+      Active := False;
+      SQL.Clear;
+
+      SQL.Add('SELECT FV_CODIGO AS CODIGO, CAST(FV_DESCRIPCION AS VARCHAR(30)) AS NOMBRE ');
+      SQL.Add('FROM "' + rutaData + '\SVENDEDORES"');
+      open;
+
+      First;
+      while not Eof do
+      begin
+        vendID  := FieldByName('CODIGO').AsString;
+        vendNom := FieldByName('NOMBRE').AsString;;
+        cbVendedores.Items.AddObject(vendID + '-' + vendNom, TVendedores.CreateVendedores(vendID,vendNom));
+
+        Next;
+      end;
+      Close;
+    end;
+  end
+  else
+    cbVendedores.Enabled := False;
+
+end;
+
+
+{
+===============================================================================
+    CREACION DE TODAS LAS TABLAS TEMPORALES
+===============================================================================
+}
+procedure TfMainReport.crearTablaTMP_c(idUser: Integer);
+begin
+  borrarTablaTmp(idUser);
+  crearTablaTMP_Inven(idUser);
+  crearTablaTMP_Prove(idUser);
+  crearTablaTMP_Categ(idUser);
+  crearTablaTMP_SubCa(idUser);
+  crearTablaTMP_Marca(idUser);
+  crearTablaTMP_Compr(idUser);
+  crearTablaTMP_NotaE(idUser);
+  crearTablaTMP_InvDe(idUser);
+  crearTablaTMP_VtaAc(idUser);
+end;
+
+
+procedure TfMainReport.crearTablaTMP_V(idUser: Integer);
+begin
+  borrarTablaTmp(idUser);
+  crearTablaTMP_Inven(idUser);
+  crearTablaTMP_Categ(idUser);
+  crearTablaTMP_SubCa(idUser);
+  crearTablaTMP_VtaDe(idUser);
+end;
+
+
+{----------------------------------------------------------------------------1
+     CREACION DE TABLA TEMPORAL PARA DATOS DE INVENTARIO
+}
+procedure TfMainReport.crearTablaTMP_Inven(idUser: Integer);
+var
+  TableToCreate: TDBISAMTable;
+
+begin
+  TableToCreate :=  TDBISAMTable.Create(Application);
+  try
+    with TableToCreate do
+    begin
+      DatabaseName  :=  rutaTemp;
+      TableName     :=  IntToStr(idUser) + BD_INVE;
+      Exclusive     :=  True;
+      tablasBD[1]   :=  TableName;
+
+      if (not Exists) then
+      begin
+        with FieldDefs do
+        begin
+          Clear;
+          Add('FI_CODIGO', ftString, 30, True);
+          Add('FI_DESCRIPCION',ftString,150,True);
+          Add('FI_CATEGORIA',ftString,30,True);
+          Add('FI_SUBCATEGORIA',ftString,100);
+          Add('FI_UNIDAD',ftString,30);
+          Add('FI_REFERENCIA',ftString,30);
+          Add('ZZCAMPO_001',ftString,60);
+          Add('FI_MARCA',ftString,60);
+          Add('FI_CREACION',ftDate,0);
+          Add('FI_CAPACIDAD',ftCurrency);
+          Add('FI_MODELO',ftString,60);
+          Add('FI_PROVEEDORCOMPRANAC',ftString,10);
+        end;
+
+        with IndexDefs do
+        begin
+          Clear;
+          Add('','FI_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('FI_KEY_CAT1','FI_CATEGORIA',[], '', icNone, False);
+          Add('FI_KEY_CAT2','FI_SUBCATEGORIA',[], '', icNone, False);
+          Add('FI_KEY_PROV','FI_PROVEEDORCOMPRANAC',[], '', icNone, False);
+          Add('FI_KEY_MARC','FI_MARCA',[], '', icNone, False);
+        end;
+            CreateTable(0,1,0,False,'','',4096,512,0)
+      end;
+
+    end;
+
+   finally
+      TableToCreate.Free;
+   end;
+end;
+
+
+{----------------------------------------------------------------------------2
+     CREACION DE TABLA TEMPORAL PARA DATOS DE PROVEEDORES
+}
+procedure TfMainReport.crearTablaTMP_Prove(idUser: Integer);
+var
+  TableToCreate: TDBISAMTable;
+
+begin
+  TableToCreate :=  TDBISAMTable.Create(Application);
+  try
+    with TableToCreate do
+    begin
+      DatabaseName :=  rutaTemp;
+      TableName    :=  IntToStr(idUser) + BD_PROV;
+      Exclusive    :=  True;
+      tablasBD[2]  :=  TableName;
+
+      if (not Exists) then
+      begin
+        with FieldDefs do
+        begin
+          Clear;
+          Add('FP_CODIGO',ftString,30,True);
+          Add('FP_DESCRIPCION',ftString,150,True);
+        end;
+
+        with IndexDefs do
+        begin
+          Clear;
+          Add('','FP_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('FP_KEYCODIGO','FP_CODIGO',[], '', icNone, False);
+        end;
+
+        CreateTable(0,1,0,False,'','',4096,512,0)
+      end;
+    end;
+
+  finally
+      TableToCreate.Free;
+  end;
+
+end;
+
+
+{ ----------------------------------------------------------------------------3
+     CREACION DE TABLA TEMPORAL PARA DATOS DE CATEGORIAS
+}
+procedure TfMainReport.crearTablaTMP_Categ(idUser: Integer);
+var
+  TableToCreate: TDBISAMTable;
+
+begin
+  TableToCreate :=  TDBISAMTable.Create(Application);
+  try
+    with TableToCreate do
+    begin
+      DatabaseName :=  rutaTemp;
+      TableName    :=  IntToStr(idUser) + BD_CATE;
+      Exclusive    :=  True;
+      tablasBD[3]  :=  TableName;
+
+      if (not Exists) then
+      begin
+        with FieldDefs do
+        begin
+          Clear;
+          Add('FD_CODIGO',ftString,30,True);
+          Add('FD_DESCRIPCION',ftString,150,True);
+        end;
+        with IndexDefs do
+        begin
+          Clear;
+          Add('','FD_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('FD_KEYCODIGO','FD_CODIGO',[], '', icNone, False);
+        end;
+        CreateTable(0,1,0,False,'','',4096,512,0)
+      end;
+    end;
+
+   finally
+      TableToCreate.Free;
+   end;
+
+end;
+
+
+{----------------------------------------------------------------------------4
+     CREACION DE TABLA TEMPORAL PARA DATOS DE SUBCATEGORIAS
+}
+procedure TfMainReport.crearTablaTMP_SubCa(idUser: Integer);
+var
+  TableToCreate: TDBISAMTable;
+
+begin
+  TableToCreate :=  TDBISAMTable.Create(Application);
+  try
+    with TableToCreate do
+    begin
+      DatabaseName :=  rutaTemp;
+      TableName    :=  IntToStr(idUser) + BD_SUBC;
+      Exclusive    :=  True;
+      tablasBD[4]  :=  TableName;
+
+      if (not Exists) then
+      begin
+        with FieldDefs do
+        begin
+          Clear;
+          Add('FDS_CODIGO',ftString,30,True);
+          Add('FDS_DESCRIPCION',ftString,150,True);
+        end;
+        with IndexDefs do
+        begin
+          Clear;
+          Add('','FDS_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('FDS_KEYCODIGO','FDS_CODIGO',[], '', icNone, False);
+        end;
+
+        CreateTable(0,1,0,False,'','',4096,512,0)
+      end;
+    end;
+
+   finally
+      TableToCreate.Free;
+  end;
+
+end;
+
+
+{----------------------------------------------------------------------------5
+     CREACION DE TABLA TEMPORAL PARA DATOS DE MARCAS
+}
+procedure TfMainReport.crearTablaTMP_Marca(idUser: Integer);
+var
+  TableToCreate: TDBISAMTable;
+
+begin
+  TableToCreate :=  TDBISAMTable.Create(Application);
+  try
+    with TableToCreate do
+    begin
+      DatabaseName :=  rutaTemp;
+      TableName    :=  IntToStr(idUser) + BD_MARC;
+      Exclusive    :=  True;
+      tablasBD[5]  :=  TableName;
+
+      if (not Exists) then
+      begin
+        with FieldDefs do
+        begin
+          Clear;
+          Add('FMA_CODIGO',ftString,30,True);
+          Add('FMA_DESCRIPCION',ftString,150,True);
+        end;
+
+        with IndexDefs do
+        begin
+          Clear;
+          Add('','FMA_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('FMA_KEYCODIGO','FMA_CODIGO',[], '', icNone, False);
+        end;
+
+        CreateTable(0,1,0,False,'','',4096,512,0)
+      end;
+    end;
+
+  finally
+      TableToCreate.Free;
+  end;
+
+end;
+
+
+{----------------------------------------------------------------------------6
+     CREACION DE TABLA TEMPORAL PARA DATOS PROVEEDOR INVENTARIO (COMPRAS)
+}
+procedure TfMainReport.crearTablaTMP_Compr(idUser: Integer);
+var
+  TableToCreate: TDBISAMTable;
+
+begin
+  TableToCreate :=  TDBISAMTable.Create(Application);
+  try
+    with TableToCreate do
+    begin
+      DatabaseName :=  rutaTemp;
+      TableName    :=  IntToStr(idUser) + BD_COMP;
+      Exclusive    :=  True;
+      tablasBD[6]  :=  TableName;
+
+      if (not Exists) then
+      begin
+        with FieldDefs do
+        begin
+          Clear;
+          Add('FIP_CODIGO',ftString,50);
+          Add('FIP_PROVEEDOR',ftString,60);
+          Add('FIP_NOMBREPROV',ftString,150,True);
+          Add('FIP_COSTOCOMPRA',ftFloat);
+          Add('FIP_CANTIDAD',ftFloat);
+          Add('FIP_FECHA',ftDate,0,True);
+        end;
+        with IndexDefs do
+        begin
+          Clear;
+          Add('','FIP_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('FIP_KEYCODIGO','FIP_CODIGO',[], '', icNone, False);
+          Add('FIP_KEYPROV','FIP_PROVEEDOR',[], '', icNone, False);
+        end;
+        CreateTable(0,1,0,False,'','',4096,512,0)
+        end;
+    end;
+
+   finally
+      TableToCreate.Free;
+   end;
+
+end;
+
+
+{----------------------------------------------------------------------------7
+     CREACION DE TABLA TEMPORAL PARA DATOS NOTAS DE ENTREGA PENDIENTE
+}
+procedure TfMainReport.crearTablaTMP_NotaE(idUser: Integer);
+var
+  TableToCreate: TDBISAMTable;
+
+begin
+  TableToCreate :=  TDBISAMTable.Create(Application);
+  try
+    with TableToCreate do
+    begin
+      DatabaseName :=  rutaTemp;
+      TableName    :=  IntToStr(idUser) + BD_NENT;
+      Exclusive    :=  True;
+      tablasBD[7]  :=  TableName;
+
+      if (not Exists) then
+      begin
+        with FieldDefs do
+        begin
+          Clear;
+          Add('FNE_CODIGO',ftString,50);
+          Add('FNE_PROVEEDOR',ftString,60);
+          Add('FNE_NOMBREPROV',ftString,150,True);
+          Add('FNE_CANTIDAD',ftFloat);
+          Add('FNE_FECHA',ftDate,0,True);
+        end;
+
+        with IndexDefs do
+        begin
+          Clear;
+          Add('','FNE_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('FNE_KEYCODIGO','FNE_CODIGO',[], '', icNone, False);
+          Add('FNE_KEYPROV','FNE_NOMBREPROV',[], '', icNone, False);
+        end;
+
+        CreateTable(0,1,0,False,'','',4096,512,0)
+      end;
+    end;
+
+  finally
+      TableToCreate.Free;
+  end;
+
+end;
+
+
+{----------------------------------------------------------------------------8
+     CREACION DE TABLA TEMPORAL PARA DATOS EXISTENCIA ALMACENES DE INVENTARIO
+}
+procedure TfMainReport.crearTablaTMP_InvDe(idUser: Integer);
+var
+  TableToCreate: TDBISAMTable;
+
+begin
+  TableToCreate :=  TDBISAMTable.Create(Application);
+  try
+    with TableToCreate do
+    begin
+      DatabaseName :=  rutaTemp;
+      TableName    :=  IntToStr(idUser) + BD_INVD;
+      Exclusive    :=  True;
+      tablasBD[8]  :=  TableName;
+
+      if (not Exists) then
+      begin
+        with FieldDefs do
+        begin
+          Clear;
+          Add('FID_CODIGO',ftString,50);
+          Add('FID_ALMACEN',ftFloat);
+          Add('FID_TIENDA',ftFloat);
+          Add('FID_INSUMOS',ftFloat);
+          Add('FID_DEFECTOS',ftFloat);
+          Add('FID_MEZZANINA',ftFloat);
+          Add('FID_CCERAMICO',ftFloat);
+          Add('FID_CONSTRUCT',ftFloat);
+          Add('FID_EXISTENCIAP',ftFloat);
+          Add('FID_OCALMACEN',ftFloat);
+          Add('FID_OCTIENDA',ftFloat);
+        end;
+        with IndexDefs do
+        begin
+          Clear;
+          Add('','FID_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('FID_KEYCODIGO','FID_CODIGO',[], '', icNone, False);
+        end;
+
+        CreateTable(0,1,0,False,'','',4096,512,0);
+      end;
+    end;
+
+  finally
+    TableToCreate.Free;
+  end;
+
+end;
+
+
+{----------------------------------------------------------------------------9
+     CREACION DE TABLA TEMPORAL PARA ALMACENAR LAS VENTAS ULTIMOS 6 MESES
+}
+procedure TfMainReport.crearTablaTMP_VtaAc(idUser: Integer);
+var
+  TableToCreate: TDBISAMTable;
+
+begin
+  TableToCreate :=  TDBISAMTable.Create(Application);
+  try
+    with TableToCreate do
+    begin
+      DatabaseName :=  rutaTemp;
+      TableName    :=  IntToStr(idUser) + BD_VTAA;
+      Exclusive    :=  True;
+      tablasBD[9]  :=  TableName;
+
+      if (not Exists) then
+      begin
+        with FieldDefs do
+        begin
+          Clear;
+          Add('FVA_CODIGO',ftString,50);
+          Add('FVA_PERIODO1',ftFloat);
+          Add('FVA_PERIODO2',ftFloat);
+          Add('FVA_PERIODO3',ftFloat);
+          Add('FVA_PERIODO4',ftFloat);
+          Add('FVA_PERIODO5',ftFloat);
+          Add('FVA_PERIODO6',ftFloat);
+          Add('FVA_PERIODODATA',ftFloat);
+
+        end;
+        with IndexDefs do
+        begin
+          Clear;
+          Add('','FVA_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('FVA_KEYCODIGO','FVA_CODIGO',[], '', icNone, False);
+        end;
+
+        CreateTable(0,1,0,False,'','',4096,512,0)
+      end;
+    end;
+
+   finally
+      TableToCreate.Free;
+  end;
+
+end;
+
+
+{----------------------------------------------------------------------------10
+     CREACION DE TABLA TEMPORAL PARA ALMACENAR LAS VENTAS ULTIMOS 6 MESES
+}
+procedure TfMainReport.crearTablaTMP_VtaDe(idUser: Integer);
+var
+  TableToCreate: TDBISAMTable;
+
+begin
+  TableToCreate :=  TDBISAMTable.Create(Application);
+  try
+    with TableToCreate do
+    begin
+      DatabaseName :=  rutaTemp;
+      TableName    :=  IntToStr(idUser) + BD_VTAD;
+      Exclusive    :=  True;
+      tablasBD[10] :=  TableName;
+
+      if (not Exists) then
+      begin
+        with FieldDefs do
+        begin
+          Clear;
+          Add('FVD_CODIGO',ftString,50);
+          Add('FVD_CANTIDAD',ftFloat);
+
+          Add('FVD_MTOBRUTO',ftCurrency);
+          Add('FVD_DESCUENTO',ftCurrency);
+          Add('FVD_MTONETO',ftCurrency);
+          Add('FVD_IVA',ftCurrency);
+          Add('FVD_COSTO',ftCurrency);
+          Add('FVD_UTILIDADM',ftCurrency);
+          Add('FVD_UTILIDADP',ftFloat);
+
+        end;
+        with IndexDefs do
+        begin
+          Clear;
+          Add('','FVD_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('FVD_KEYCODIGO','FVD_CODIGO',[], '', icNone, False);
+        end;
+
+        CreateTable(0,1,0,False,'','',4096,512,0)
+      end;
+    end;
+
+   finally
+      TableToCreate.Free;
+  end;
+
+end;
+
+
+
+function TfMainReport.encapsularPeriodo(t: TDate): string;
+var
+  D, M, Y, i,j : Integer;
+  Ds, Ms, Ys : string;
+
+  text, textDs, textMs, textYs : string;
+
+begin
+  D := CONVD * (DayOf(t));
+  M := CONVM * (MonthOf(t));
+  Y := CONVY * (YearOf(t));
+
+  Ds := Format(Format('%%.%dd', [8]), [D]);
+  Ms := Format(Format('%%.%dd', [8]), [M]);
+  Ys := Format(Format('%%.%dd', [8]), [Y]);
+
+  for i:=1 to Length(Ds) do
+  begin
+    for j := 1 to Length(Ds) do
+    begin
+      if j = StrToInt(CLAVE_D[i]) then
+        text := text + Ds[i]
+      else
+        text := text + char(Random(31)+40);
+
+      textDs := text
+    end;
+
+  end;
+
+  text := '';
+
+  for i:=1 to Length(Ms) do
+  begin
+    for j := 1 to Length(Ms) do
+    begin
+      if j = StrToInt(CLAVE_M[i]) then
+        text := text + Ms[i]
+      else
+        text := text + char(Random(31)+40);
+
+      textMs := text
+    end;
+  end;
+
+  text := '';
+
+  for i:=1 to Length(Ys) do
+  begin
+    for j := 1 to Length(Ys) do
+    begin
+      if j = StrToInt(CLAVE_Y[i]) then
+        text := text + Ys[i]
+      else
+        text := text + char(Random(31)+40);
+
+      textYs := text
+    end;
+  end;
+  Memo1.Lines.Add(textDs + textMs + textYs);
+
+end;
+
+
+procedure TfMainReport.encapsularPeriodo2(t: string);
+var
+  I,J, indClave : Integer;
+
+  cadenaBlock, texto  : string;
+  block :  Array[1..3] of string;
+  block2 : Array[1..3] of string;
+
+  D, M, Y : Integer;
+  fecha : TDate;
+
+
+begin
+  J := 1;
+
+  try
+    begin
+      for I := 1 to Length(t)  do
+      begin
+        if (I mod 64) = 0 then
+        begin
+          texto     := texto + t[i];
+          block[J]  := texto;
+          texto     := '';
+          inc(J);
+        end
+        else
+          texto := texto + t[i];
+      end;
+      texto := '';
+
+      for i := 1 to 3 do
+      begin
+        cadenaBlock := block[i];
+        indClave := 0;
+
+        for j := 1 to 64 do
+        begin
+          if (j mod 8) = 0 then
+          begin
+            Inc(indClave);
+            texto := texto + cadenaBlock[j];
+
+            case i of
+              1: block2[i] :=  block2[i] + Copy( texto, StrToInt(CLAVE_D[indClave]), 1);
+              2: block2[i] :=  block2[i] + Copy( texto, StrToInt(CLAVE_M[indClave]), 1);
+              3: block2[i] :=  block2[i] + Copy( texto, StrToInt(CLAVE_Y[indClave]), 1);
+            end;
+            texto := '';
+          end
+          else
+            texto := texto + cadenaBlock[j];
+        end;
+      end;
+
+      D := StrToInt(block2[1]) div CONVD;
+      M := StrToInt(block2[2]) div CONVM;
+      Y := StrToInt(block2[3]) div CONVY;
+
+      fecha :=  EncodeDate(Y,M,D);
+      memo1.Lines.Add('Cadena : ' + t);
+      memo1.Lines.Add('Fecha : ' + DateToStr(fecha));
+
+    end;
+  Except
+    on E : Exception do
+    begin
+      MessageBox(0, 'Error en la lectura de la Clave Cadena', 'Warning', MB_OK);
+      fMainReport.Close;
+    end;
+
+
+  end;
+
+end;
+
+function TfMainReport.EsFechaValida(Fecha: TDateTime): Boolean;
+begin
+  Result := (Fecha <> 0) and (Fecha > EncodeDate(1900, 1, 1)) and (Fecha <= Now);
+end;
+
+procedure TfMainReport.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  DM.SQL_Final.close;
+  borrarTablaTmp(userIndex);
+end;
+
+procedure TfMainReport.FormCreate(Sender: TObject);
+var
+  i: integer;
+begin
+  getVariableEntorno;
+  Memo1.Lines.Add(rutaData);
+  Memo1.Lines.Add(rutaTemp);
+  Memo1.Lines.Add(report01);
+  Memo1.Lines.Add(report02);
+  Memo1.Lines.Add(IntToStr(nPeriodo));
+  Memo1.Lines.Add(DateToStr(fechaInicio));
+
+  mesFin := MonthOf(Now)-1;
+  yearFin := YearOf(Now);
+
+  case MonthOf(Now) of
+    1..6:
+      begin
+        mesIni  := mesFin + 7;
+        yearIni := YearOf(Now) - 1;
+      end;
+    7..12:
+      begin
+        mesIni  := mesFin - 5;
+        yearIni := YearOf(Now);
+      end;
+  end;
+
+
+  wwDBDateTimePicker1.MinDate := encodeDate(yearIni,mesIni,1);
+  wwDBDateTimePicker1.MaxDate := EndOfAMonth(yearFin, mesFin);
+
+end;
+
+
+procedure TfMainReport.FormShow(Sender: TObject);
+begin
+  fSplash.ShowModal;
+
+  if Length(claveCadena) <> 192 then
+  begin
+    MessageBox(0, 'Error en la lectura de la Clave Cadena', 'Warning', MB_OK);
+      fMainReport.Close;
+  end
+  else
+  begin
+    encapsularPeriodo2(claveCadena);
+    if Now() < fechaTope  then
+    begin
+      MessageBox(0, 'La fecha ha Expirado', 'Warning', MB_OK);
+      fMainReport.Close;
+    end;
+
+  end;
+
+  if accesoPermitido = True then
+  begin
+    if usuarioTieneAcceso = False then
+    begin
+      MessageBox(0, 'Este usuario no puede ver reportes', 'Warning', MB_OK);
+      fMainReport.Close;
+    end;
+  end;
+
+end;
+
+
+procedure TfMainReport.getVariableEntorno;
+var
+  IniFile : TIniFile;
+
+begin
+  archivoINI  := ExtractFilePath(ParamStr(0)) + 'config.ini';
+  IniFile     := TIniFile.Create(archivoINI);
+
+  try
+    rutaData    := IniFile.ReadString('RUTAS', 'DATA', '');
+    rutaTemp    := IniFile.ReadString('RUTAS', 'TEMP', '');
+
+    Report01    := IniFile.ReadString('REPORT', 'REPORT01', '');
+    Report02    := IniFile.ReadString('REPORT', 'REPORT02', '');
+
+    nPeriodo    := IniFile.ReadInteger('PERIODOS', 'PERIODO', 0);
+    fechaInicio := IniFile.ReadDate('PERIODOS', 'FINICIO', now);
+
+    claveCadena := IniFile.ReadString('SERIAL', 'CADENA', '');
+
+  finally
+    IniFile.Free;
+  end;
+
+end;
+
+{
+****************************************************************************************************
+    INSERTANDO DATOS EN LAS TABLAS TEMPORALES
+****************************************************************************************************
+}
+
+{----------------------------------------------------------------------------
+     INSERTANDO DATOS DE CATEGORIAS
+}
+procedure TfMainReport.insertTablaTMP_Categ(tabla: string);
+begin
+  with DM.SQL_Insert do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    Memo1.Lines.Add('================== Insertando Categoria ==================');
+    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('SELECT  FD_CODIGO, FD_DESCRIPCION');
+    SQL.Add('FROM ' + #34 + rutaData + '\SCATEGORIA"');
+    SQL.Add('WHERE FD_CODIGO IS NOT NULL');
+    SQL.Add('ORDER BY FD_CODIGO ASC;');
+
+    Memo1.Lines.Add(SQL.Text);
+    ExecSQL;
+    Close;
+
+  end;
+end;
+
+
+{----------------------------------------------------------------------------
+     INSERTANDO DATOS DE ULTIMA COMPRA DEL PRODUCTO
+}
+procedure TfMainReport.insertTablaTMP_Compr(tabla: string);
+begin
+  with DM.SQL_Insert do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    Memo1.Lines.Add('================== Insertando Compras ==================');
+    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('SELECT FTP_CODEPRODUCTO, FTP_CODPROVEEDOR, ');
+    SQL.Add('   FP_DESCRIPCION, FTP_ULTCOSTO, ');
+    SQL.Add('   FTP_ULTCANTIDAD, FTP_FECHACOMPRA');
+    SQL.Add('FROM "' + rutaData + '\SPROVINVENT"');
+
+    SQL.Add('INNER JOIN "' + rutaData + '\SPROVEEDOR" ON FTP_CODPROVEEDOR = FP_CODIGO');
+    SQL.Add('GROUP BY FTP_CODEPRODUCTO');
+    SQL.Add('ORDER BY FTP_CODEPRODUCTO');
+
+    Memo1.Lines.Add(SQL.Text);
+    ExecSQL;
+    Close;
+  end;
+end;
+
+
+{----------------------------------------------------------------------------
+     INSERTANDO DATOS DE EXISTENCIAS SEEGUN DEPOSITOS
+}
+procedure TfMainReport.insertTablaTMP_InvDe(tabla: string);
+begin
+  with DM.SQL_Insert do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    Memo1.Lines.Add('================== Insertando Existencia Depositos ==================');
+    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('SELECT FT_CODIGOPRODUCTO,');
+    SQL.Add('   SUM(CASE WHEN FT_CODIGODEPOSITO = 1 THEN COALESCE(FT_EXISTENCIA, 0.0) ELSE 0 END) AS ALMACEN,');
+    SQL.Add('   SUM(CASE WHEN FT_CODIGODEPOSITO = 2 THEN COALESCE(FT_EXISTENCIA, 0.0) ELSE 0 END) AS TIENDA,');
+    SQL.Add('   SUM(CASE WHEN FT_CODIGODEPOSITO = 3 THEN COALESCE(FT_EXISTENCIA, 0.0) ELSE 0 END) AS INSUMOS,');
+    SQL.Add('   SUM(CASE WHEN FT_CODIGODEPOSITO = 5 THEN COALESCE(FT_EXISTENCIA, 0.0) ELSE 0 END) AS DEFECTOS,');
+    SQL.Add('   SUM(CASE WHEN FT_CODIGODEPOSITO = 6 THEN COALESCE(FT_EXISTENCIA, 0.0) ELSE 0 END) AS MEZZANINA,');
+    SQL.Add('   SUM(CASE WHEN FT_CODIGODEPOSITO = 7 THEN COALESCE(FT_EXISTENCIA, 0.0) ELSE 0 END) AS CCERAMICO,');
+    SQL.Add('   SUM(CASE WHEN FT_CODIGODEPOSITO = 8 THEN COALESCE(FT_EXISTENCIA, 0.0) ELSE 0 END) AS CONSTRUCT,');
+    SQL.Add('   SUM(COALESCE(FT_EXISTENCIA, 0.0)) AS EXISTENCIAP,');
+    SQL.Add('   SUM(CASE WHEN FT_CODIGODEPOSITO = 1 THEN COALESCE(FT_EXISTENCIAORDENCOMPRA, 0.0) ELSE 0 END) AS [OC. ALMACEN],');
+    SQL.Add('   SUM(CASE WHEN FT_CODIGODEPOSITO = 2 THEN COALESCE(FT_EXISTENCIAORDENCOMPRA, 0.0) ELSE 0 END) AS [OC. TIENDA]');
+
+    SQL.Add('FROM "' + rutaData + '\SINVDEP"');
+    SQL.Add('GROUP BY FT_CODIGOPRODUCTO');
+    SQL.Add('ORDER BY FT_CODIGOPRODUCTO ASC');
+
+    Memo1.Lines.Add(SQL.Text);
+    ExecSQL;
+    Close;
+  end;
+end;
+
+
+{----------------------------------------------------------------------------1
+     INSERTANDO DATOS DE INVENTARIO
+}
+procedure TfMainReport.insertTablaTMP_Inven(tabla: string);
+begin
+  with DM.SQL_Insert do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    Memo1.Lines.Add('================== Insertando Inventario ==================');
+    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('SELECT FI_CODIGO, FI_DESCRIPCION, FI_CATEGORIA, FI_SUBCATEGORIA,');
+    SQL.Add('   FI_UNIDAD, FI_REFERENCIA, ZZCAMPO_001, FI_MARCA,');
+    SQL.Add('   COALESCE(FI_CREACION, ' + QuotedStr('1974-09-24') + '), ');
+    SQL.Add('   FI_CAPACIDAD, FI_MODELO, FI_PROVEEDORCOMPRANAC');
+
+    SQL.Add('FROM "' + rutaData + '\SINVENTARIO"');
+    SQL.Add('WHERE FI_CODIGO IS NOT NULL AND FI_STATUS = 1');
+    SQL.Add('ORDER BY FI_CODIGO');
+
+    Memo1.Lines.Add(SQL.Text);
+    ExecSQL;
+    Close;
+  end;
+end;
+
+
+{----------------------------------------------------------------------------
+     INSERTANDO DATOS DE MARCAS
+}
+procedure TfMainReport.insertTablaTMP_Marca(tabla: string);
+begin
+  with DM.SQL_Insert do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+    Memo1.Lines.Add('================== Insertando Marcas ==================');
+    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('SELECT FCMM_CODIGO, FCMM_DESCRIPCION');
+    SQL.Add('FROM ' + #34 + rutaData + '\CMS_MARCAS"');
+    SQL.Add('WHERE FCMM_CODIGO IS NOT NULL');
+    SQL.Add('ORDER BY FCMM_CODIGO ASC;');
+
+    Memo1.Lines.Add(SQL.Text);
+    ExecSQL;
+    Close;
+
+  end;
+end;
+
+
+{----------------------------------------------------------------------------
+     INSERTANDO DATOS DE ULTIMA COMPRA DEL PRODUCTO
+}
+procedure TfMainReport.insertTablaTMP_NotaE(tabla: string);
+begin
+  with DM.SQL_Insert do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    Memo1.Lines.Add('================== Insertando Nota Entrega ==================');
+    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('SELECT FDI_CODIGO, FDI_CLIENTEPROVEEDOR,');
+    SQL.Add(QuotedStr('X') + ', FDI_CANTIDAD,');
+    SQL.Add('   MAX(FDI_FECHAOPERACION) AS FECHA');
+
+    SQL.Add('FROM "' + rutaData + '\SDETALLECOMPRA"');
+    SQL.Add('WHERE FDI_TIPOOPERACION = 8 AND FDI_STATUS = 4 ');
+    SQL.Add('GROUP BY FDI_CODIGO');
+    SQL.Add('ORDER BY FDI_CODIGO ASC');
+
+    Memo1.Lines.Add(SQL.Text);
+    ExecSQL;
+    Close;
+
+    {----------------------------------------------------------------------------
+     ACTUALIZA EL PROVEEDOR EN LA TABLA tmp_NotaE}
+    //ShowMessage('Modifiando');
+    SQL.Clear;
+    SQL.Add('UPDATE ' + tabla);
+    SQL.Add('SET FNE_NOMBREPROV = FP_DESCRIPCION');
+
+    SQL.Add('FROM ' + tabla);
+    SQL.Add('INNER JOIN "' + rutaTemp + '\' + tablasBD[2] + '" ON FNE_PROVEEDOR = FP_CODIGO');
+
+    Memo1.Lines.Add(SQL.Text);
+    ExecSQL;
+    Close;
+
+  end;
+
+end;
+
+
+{----------------------------------------------------------------------------
+     INSERTANDO DATOS DE PROVEEDORES
+}
+procedure TfMainReport.insertTablaTMP_Prove(tabla: string);
+begin
+  with DM.SQL_Insert do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    Memo1.Lines.Add('================== Insertando Proveedor ==================');
+    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('SELECT FP_CODIGO, FP_DESCRIPCION');
+    SQL.Add('FROM "' + rutaData + '\SPROVEEDOR"');
+    SQL.Add('WHERE FP_CODIGO IS NOT NULL AND FP_STATUS = 1 ');
+    SQL.Add('ORDER BY FP_CODIGO ASC');
+
+    Memo1.Lines.Add(SQL.Text);
+    ExecSQL;
+    Close;
+
+  end;
+end;
+
+
+{----------------------------------------------------------------------------
+     INSERTANDO DATOS DE SUBCATEGORIAS
+}
+procedure TfMainReport.insertTablaTMP_SubCa(tabla: string);
+begin
+  with DM.SQL_Insert do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    Memo1.Lines.Add('================== Insertando SubCategoria ==================');
+    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('SELECT FCMS_CODIGO, FCMS_DESCRIPCION');
+    SQL.Add('FROM "' + rutaData + '\CMS_Sub_Cat"');
+    SQL.Add('WHERE FCMS_CODIGO IS NOT NULL');
+    SQL.Add('ORDER BY FCMS_CODIGO ASC');
+
+    Memo1.Lines.Add(SQL.Text);
+    ExecSQL;
+    Close;
+
+  end;
+end;
+
+
+{----------------------------------------------------------------------------
+     INSERTANDO DATOS DE EXISTENCIAS SEEGUN DEPOSITOS
+}
+procedure TfMainReport.insertTablaTMP_VtaAc(tabla: string);
+var
+  cantP : Integer;
+  F1,F2 : String;
+
+begin
+  cantP := StrToInt(lblCantPeriodos.Caption);
+  with DM.SQL_Insert do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    DateTimeToString( F1, 'yyyy-mm-dd', Periodos[1].FechaI );
+    DateTimeToString( F2, 'yyyy-mm-dd', Periodos[1].FechaF );
+
+    Memo1.Lines.Add('================== Insertando Ventas Acumuladas ==================');
+    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('SELECT FDI_CODIGO,');
+    SQL.Add('  SUM(CASE WHEN FDI_FECHAOPERACION BETWEEN ' + QuotedStr(F1) + ' AND ' + QuotedStr(F2) + ' THEN');
+    SQL.Add('           CASE WHEN FDI_TIPOOPERACION = 11 THEN FDI_CANTIDAD ');
+    SQL.Add('                WHEN FDI_TIPOOPERACION = 12 THEN FDI_CANTIDAD * -1');
+    SQL.Add('           END ELSE 0.00');
+    SQL.Add('      END) AS P1,');
+
+    if (cantP >= 2) then
+    begin
+      DateTimeToString( F1, 'yyyy-mm-dd', Periodos[2].FechaI );
+      DateTimeToString( F2, 'yyyy-mm-dd', Periodos[2].FechaF );
+
+      SQL.Add('  SUM(CASE WHEN FDI_FECHAOPERACION BETWEEN ' + QuotedStr(F1) + ' AND ' + QuotedStr(F2) + ' THEN');
+      SQL.Add('            CASE WHEN FDI_TIPOOPERACION = 11 THEN FDI_CANTIDAD ');
+      SQL.Add('                 WHEN FDI_TIPOOPERACION = 12 THEN FDI_CANTIDAD * -1');
+      SQL.Add('           END ELSE 0.00');
+      SQL.Add('       END) AS P2,');
+    end
+    else
+      SQL.Add('  0.00 AS P2,');
+
+    if (cantP >= 3) then
+    begin
+      DateTimeToString( F1, 'yyyy-mm-dd', Periodos[3].FechaI );
+      DateTimeToString( F2, 'yyyy-mm-dd', Periodos[3].FechaF );
+
+      SQL.Add('  SUM(CASE WHEN FDI_FECHAOPERACION BETWEEN ' + QuotedStr(F1) + ' AND ' + QuotedStr(F2) + ' THEN');
+      SQL.Add('            CASE WHEN FDI_TIPOOPERACION = 11 THEN FDI_CANTIDAD ');
+      SQL.Add('                 WHEN FDI_TIPOOPERACION = 12 THEN FDI_CANTIDAD * -1');
+      SQL.Add('            END ELSE 0.00');
+      SQL.Add('       END) AS P3,');
+    end
+    else
+      SQL.Add('  0.00 AS P3,');
+
+    if (cantP >= 4) then
+    begin
+      DateTimeToString( F1, 'yyyy-mm-dd', Periodos[4].FechaI );
+      DateTimeToString( F2, 'yyyy-mm-dd', Periodos[4].FechaF );
+
+      SQL.Add('  SUM(CASE WHEN FDI_FECHAOPERACION BETWEEN ' + QuotedStr(F1) + ' AND ' + QuotedStr(F2) + ' THEN');
+      SQL.Add('            CASE WHEN FDI_TIPOOPERACION = 11 THEN FDI_CANTIDAD ');
+      SQL.Add('                 WHEN FDI_TIPOOPERACION = 12 THEN FDI_CANTIDAD * -1');
+      SQL.Add('            END ELSE 0.00');
+      SQL.Add('       END) AS P4,');
+    end
+    else
+      SQL.Add('  0.00 AS P4,');
+
+    if (cantP >= 5) then
+    begin
+      DateTimeToString( F1, 'yyyy-mm-dd', Periodos[5].FechaI );
+      DateTimeToString( F2, 'yyyy-mm-dd', Periodos[5].FechaF );
+
+      SQL.Add('  SUM(CASE WHEN FDI_FECHAOPERACION BETWEEN ' + QuotedStr(F1) + ' AND ' + QuotedStr(F2) + ' THEN');
+      SQL.Add('            CASE WHEN FDI_TIPOOPERACION = 11 THEN FDI_CANTIDAD ');
+      SQL.Add('                 WHEN FDI_TIPOOPERACION = 12 THEN FDI_CANTIDAD * -1');
+      SQL.Add('            END ELSE 0.00');
+      SQL.Add('       END) AS P5,');
+    end
+    else
+      SQL.Add('  0.00 AS P5,');
+
+    if (cantP >= 6) then
+    begin
+      DateTimeToString( F1, 'yyyy-mm-dd', Periodos[6].FechaI );
+      DateTimeToString( F2, 'yyyy-mm-dd', Periodos[6].FechaF );
+
+      SQL.Add('  SUM(CASE WHEN FDI_FECHAOPERACION BETWEEN ' + QuotedStr(F1) + ' AND ' + QuotedStr(F2) + ' THEN');
+      SQL.Add('            CASE WHEN FDI_TIPOOPERACION = 11 THEN FDI_CANTIDAD ');
+      SQL.Add('                 WHEN FDI_TIPOOPERACION = 12 THEN FDI_CANTIDAD * -1');
+      SQL.Add('            END ELSE 0.00');
+      SQL.Add('       END) AS P6,');
+    end
+    else
+      SQL.Add('  0.00 AS P6,');
+
+    if chkData.Checked = True then
+    begin
+      DateTimeToString( F1, 'yyyy-mm-dd', Periodos[7].FechaI );
+      DateTimeToString( F2, 'yyyy-mm-dd', Periodos[7].FechaF );
+
+      SQL.Add('  SUM(CASE WHEN FDI_FECHAOPERACION BETWEEN ' + QuotedStr(F1) + ' AND ' + QuotedStr(F2) + ' THEN');
+      SQL.Add('            CASE WHEN FDI_TIPOOPERACION = 11 THEN FDI_CANTIDAD ');
+      SQL.Add('                 WHEN FDI_TIPOOPERACION = 12 THEN FDI_CANTIDAD * -1');
+      SQL.Add('            END ELSE 0.00');
+      SQL.Add('       END) AS DATA');
+    end
+    else
+      SQL.Add('0.00  AS DATA');
+
+
+    SQL.Add('FROM "' + rutaData + '\SDETALLEVENTA"');
+    SQL.Add('WHERE FDI_TIPOOPERACION IN (11,12)');
+    SQL.Add('AND FDI_STATUS = 1');
+    SQL.Add('AND FDI_FECHAOPERACION BETWEEN :Fecha1 AND :Fecha2 ');
+    SQL.Add('GROUP BY FDI_CODIGO');
+
+    ParamByName('Fecha1').AsDate := wwDBDateTimePicker1.MinDate;
+
+    if chkData.Checked = True then
+      ParamByName('Fecha2').AsDate := Periodos[7].FechaF
+    else
+      ParamByName('Fecha2').AsDate := wwDBDateTimePicker1.MaxDate;
+
+    MEMO1.Lines.Add( sql.Text);
+    ExecSQL;
+    Close;
+
+  end;
+end;
+
+
+procedure TfMainReport.insertTablaTMP_VtaDe(tabla: string);
+begin
+  with DM.SQL_Insert do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    Memo1.Lines.Add('================== Insertando Detalle Venta ==================');
+    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('SELECT FDI_CODIGO,');
+    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN FDI_CANTIDAD ' +
+            '         WHEN FDI_TIPOOPERACION = 12 THEN FDI_CANTIDAD * -1 ' +
+            '    END) AS CANTIDAD,');
+
+    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_CANTIDAD * FDI_PRECIOSINDESCUENTO) ' +
+            '         WHEN FDI_TIPOOPERACION = 12 THEN (FDI_CANTIDAD * FDI_PRECIOSINDESCUENTO) * -1 ' +
+            '    END / FTI_FACTORREFERENCIA) AS [MONTO BRUTO],');
+
+    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN ' +
+            '              ((((FDI_PRECIOCONDESCUENTO * (FDI_PORCENTDESCUENTO1/100)) + ' +
+            '              (FDI_PRECIOCONDESCUENTO * (1-(FDI_PORCENTDESCUENTO1/100))) * ' +
+            '              (FDI_PORCENTDESCUENTO2/100)) + FDI_DESCUENTOPARCIAL) * FDI_CANTIDAD) ' +
+            '         WHEN FDI_TIPOOPERACION = 12 THEN ' +
+            '              ((((FDI_PRECIOCONDESCUENTO * (FDI_PORCENTDESCUENTO1/100)) + ' +
+            '              (FDI_PRECIOCONDESCUENTO * (1-(FDI_PORCENTDESCUENTO1/100))) * ' +
+            '              (FDI_PORCENTDESCUENTO2/100)) + FDI_DESCUENTOPARCIAL) * FDI_CANTIDAD) * -1 ' +
+            '    END / FTI_FACTORREFERENCIA) AS [DESCUENTOS],');
+
+    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD) ' +
+            '         WHEN FDI_TIPOOPERACION = 12 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD) * -1 ' +
+            '    END / FTI_FACTORREFERENCIA) AS [MONTO NETO],');
+
+    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD * (FDI_IMPUESTO1/100)) ' +
+            '         WHEN FDI_TIPOOPERACION = 12 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD * (FDI_IMPUESTO1/100)) * -1 ' +
+            '    END / FTI_FACTORREFERENCIA) AS [I.V.A.],');
+
+    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_CANTIDAD * FDI_COSTODEVENTAS) ' +
+            '         WHEN FDI_TIPOOPERACION = 12 THEN (FDI_CANTIDAD * FDI_COSTODEVENTAS) * -1  ' +
+            '    END / FTI_FACTORREFERENCIA) AS COSTOS,');
+
+    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN ' +
+            '         ((FDI_PRECIOBASECOMISION * FDI_CANTIDAD) - (FDI_CANTIDAD * FDI_COSTODEVENTAS)) ' +
+            '         WHEN FDI_TIPOOPERACION = 12 THEN ' +
+            '         ((FDI_PRECIOBASECOMISION * FDI_CANTIDAD) - (FDI_CANTIDAD * FDI_COSTODEVENTAS)) * -1 ' +
+            '    END / FTI_FACTORREFERENCIA) AS [UTILIDAD USD],');
+
+    SQL.Add('0.00 AS [UTILIDAD %]');
+
+
+    SQL.Add('FROM "' + rutaData + '\SDETALLEVENTA"');
+    SQL.Add('INNER JOIN "' + rutaData + '\SOPERACIONINV"' + ' ON FDI_OPERACION_AUTOINCREMENT = FTI_AUTOINCREMENT');
+
+    SQL.Add('WHERE FDI_STATUS = 1');
+
+    SQL.Add('AND FDI_TIPOOPERACION IN (11,12)');
+    SQL.Add('AND FDI_FECHAOPERACION BETWEEN :F1 AND :F2 ');
+
+    if chkVendedor.Checked and (cbVendedores.ItemIndex > 0)  then
+    begin
+      SQL.Add('AND FDI_VENDEDORASIGNADO = :VendedorID');
+      ParamByName('VendedorID').AsString := QuotedStr(vendedor);
+    end;
+
+    SQL.Add('GROUP BY FDI_CODIGO');
+
+    if chkFechaExtendida.Checked then
+    begin
+      ParamByName('F1').AsDate := dtpFechaPeriodoVentas.Date;
+      ParamByName('F2').AsDate := Now();
+    end
+    else
+    begin
+      ParamByName('F1').AsDate := dtpFechaPeriodoVentas.Date;
+      ParamByName('F2').AsDate := EndOfAMonth(YearOf(dtpFechaPeriodoVentas.Date),
+                                               MonthOf(dtpFechaPeriodoVentas.Date));
+
+    end;
+
+
+
+
+    Memo1.Lines.Add(SQL.Text);
+    ExecSQL;
+    Close;
+
+  end;
+
+end;
+
+procedure TfMainReport.R1Click(Sender: TObject);
+begin
+
+end;
+
+{
+****************************************************************************************************
+    UNIENDO TODOS LAS CONSULTAS EN UN SOLO REPORTE
+****************************************************************************************************
+}
+
+procedure TfMainReport.consultaFinalCompras;
+var
+  cantP : Integer;
+
+begin
+  cantP := StrToInt(lblCantPeriodos.Caption);
+
+  with DM.SQL_Final do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    SQL.Add('SELECT FI_CODIGO         AS CODIGO, ');
+    SQL.Add('   FI_DESCRIPCION        AS [DESCRIPCION DEL PRODUCTO], ');
+    SQL.Add('   FI_CATEGORIA          AS [CATEGORIA],');
+    SQL.Add('   FD_DESCRIPCION        AS [DETALLE CATEGROIA],');
+    SQL.Add('   FI_SUBCATEGORIA       AS [SUB CAT.],');
+    SQL.Add('   FDS_DESCRIPCION       AS [DETALLE SUB CAT.],');
+    SQL.Add('   FI_UNIDAD             AS UNIDAD,');
+    SQL.Add('   FI_REFERENCIA         AS REFERENCIA, ZZCAMPO_001 ,');
+    SQL.Add('   FMA_DESCRIPCION       AS MARCA,');
+    SQL.Add('   FI_CREACION           AS [FECHA CREACION],');
+    SQL.Add('   FI_CAPACIDAD          AS CAPACIDAD,          ');
+    SQL.Add('   FI_MODELO             AS MODELO,');
+    SQL.Add('   FI_PROVEEDORCOMPRANAC AS [PROV. CODIGO],');
+    SQL.Add('   FP_DESCRIPCION        AS [PROV. ASIGNADO], ');
+    SQL.Add('   FIC_COSTOPROMEDIOEXTRANJERO AS [COSTO PROM.], ');
+
+    SQL.Add('   CASE WHEN (FIC_IMP01EXENTO = 1 AND FIC_IMP01MONTO = 0) THEN FIC_P01PRECIOTOTALEXT ');
+    SQL.Add('           ELSE FIC_P01PRECIOTOTALEXT * (1 + (FIC_IMP01MONTO / 100)) ');
+    SQL.Add('   END AS [PRECIO], ');
+
+    SQL.Add('   COALESCE(ROUND((((FIC_P01PRECIOTOTALEXT - FIC_COSTOPROMEDIOEXTRANJERO) / FIC_P01PRECIOTOTALEXT) * 100),2),0.00) AS [UTILIDAD %], ');
+
+    SQL.Add('   FIP_COSTOCOMPRA AS [COMPRA COSTO], ');
+    SQL.Add('   FIP_CANTIDAD    AS [COMPRA ULT. CANT.], ');
+    SQL.Add('   FIP_FECHA       AS [COMPRA ULT. FECHA], ');
+    SQL.Add('   FIP_NOMBREPROV  AS [COMPRA PROV.], ');
+
+    SQL.Add('   FNE_CANTIDAD    AS [RECEP. ULT. CANT.], ');
+    SQL.Add('   FNE_FECHA       AS [RECEP. ULT. FECHA], ');
+    SQL.Add('   FNE_NOMBREPROV  AS [RECEP. PROV.], ');
+
+    SQL.Add('   IFNULL(FID_ALMACEN   THEN 0.00 ELSE FID_ALMACEN)   AS ALMACEN, ');
+    SQL.Add('   IFNULL(FID_TIENDA    THEN 0.00 ELSE FID_TIENDA)    AS TIENDA, ');
+    SQL.Add('   IFNULL(FID_INSUMOS   THEN 0.00 ELSE FID_INSUMOS)   AS INSUMO, ');
+    SQL.Add('   IFNULL(FID_DEFECTOS  THEN 0.00 ELSE FID_DEFECTOS)  AS DEFECTO, ');
+    SQL.Add('   IFNULL(FID_MEZZANINA THEN 0.00 ELSE FID_MEZZANINA) AS MEZZANINA, ');
+    SQL.Add('   IFNULL(FID_CCERAMICO THEN 0.00 ELSE FID_CCERAMICO) AS CCERAMICO, ');
+    SQL.Add('   IFNULL(FID_CONSTRUCT THEN 0.00 ELSE FID_CONSTRUCT) AS CONSTRUCTOR, ');
+
+    SQL.Add('   IFNULL(FID_OCALMACEN THEN 0.00 ELSE FID_OCALMACEN)  AS [OC. ALMACEN], ');
+    SQL.Add('   IFNULL(FID_OCTIENDA  THEN 0.00 ELSE FID_OCTIENDA)   AS [OC. TIENDA], ');
+
+    SQL.Add('   IFNULL(FVA_PERIODO1 THEN 0.00 ELSE FVA_PERIODO1)    AS [' + periodos[1].Periodo + '] ');
+
+    if (cantP >= 2) then
+      SQL.Add(',   IFNULL(FVA_PERIODO2 THEN 0.00 ELSE FVA_PERIODO2)    AS [' + periodos[2].Periodo + '] ');
+
+    if (cantP >= 3) then
+      SQL.Add(',   IFNULL(FVA_PERIODO3 THEN 0.00 ELSE FVA_PERIODO3)    AS [' + periodos[3].Periodo + '] ');
+
+    if (cantP >= 4) then
+      SQL.Add(',   IFNULL(FVA_PERIODO4 THEN 0.00 ELSE FVA_PERIODO4)    AS [' + periodos[4].Periodo + '] ');
+
+    if (cantP >= 5) then
+      SQL.Add(',   IFNULL(FVA_PERIODO5 THEN 0.00 ELSE FVA_PERIODO5)    AS [' + periodos[5].Periodo + '] ');
+
+    if (cantP = 6) then
+      SQL.Add(',   IFNULL(FVA_PERIODO6 THEN 0.00 ELSE FVA_PERIODO6)    AS [' + periodos[6].Periodo + '] ');
+
+    if chkData.Checked = True then
+      SQL.Add(',   IFNULL(FVA_PERIODODATA THEN 0.00 ELSE FVA_PERIODODATA)    AS [' + periodos[7].Periodo + '] ');
+
+
+    SQL.Add('INTO "' + rutaTemp + '\' + tablaReport + '"' );
+
+    SQL.Add('FROM "' + rutaTemp + '\' + tablasBD[1] + '"' );
+    SQL.Add('LEFT JOIN "' + rutaData + '\A2InvCostosPrecios"' + ' ON FI_CODIGO             = FIC_CODEITEM');
+    SQL.Add('LEFT JOIN "' + rutaTemp + '\' + tablasBD[3] + '" ON FI_CATEGORIA          = FD_CODIGO');
+    SQL.Add('LEFT JOIN "' + rutaTemp + '\' + tablasBD[4] + '" ON FI_SUBCATEGORIA       = FDS_CODIGO');
+    SQL.Add('LEFT JOIN "' + rutaTemp + '\' + tablasBD[2] + '" ON FI_PROVEEDORCOMPRANAC = FP_CODIGO');
+    SQL.Add('LEFT JOIN "' + rutaTemp + '\' + tablasBD[5] + '" ON FI_MARCA              = FMA_CODIGO');
+    SQL.Add('LEFT JOIN "' + rutaTemp + '\' + tablasBD[6] + '" ON FI_CODIGO             = FIP_CODIGO');
+    SQL.Add('LEFT JOIN "' + rutaTemp + '\' + tablasBD[7] + '" ON FI_CODIGO             = FNE_CODIGO');
+    SQL.Add('LEFT JOIN "' + rutaTemp + '\' + tablasBD[8] + '" ON FI_CODIGO             = FID_CODIGO');
+    SQL.Add('LEFT JOIN "' + rutaTemp + '\' + tablasBD[9] + '" ON FI_CODIGO             = FVA_CODIGO');
+
+    Memo1.Lines.Add('ULTIMA CONSULTA, AGRUPANDO TODAS LAS TABLAS');
+    Memo1.Lines.Add(SQL.Text);
+    Open;
+    close;
+
+  end;
+end;
+
+
+procedure TfMainReport.consultaFinalVentas;
+begin
+  with DM.SQL_Final do
+  begin
+    Close;
+    Active := False;
+    SQL.Clear;
+
+    Memo1.Lines.Add('ULTIMA CONSULTA, MOVIMIENTO DE VENTAS DEL PERIODO');
+    SQL.Add('SELECT ');
+    SQL.Add('   FI_CATEGORIA       AS [CATEGORIA],');
+    SQL.Add('   FD_DESCRIPCION     AS [DETALLE CATEGROIA],');
+    SQL.Add('   FI_SUBCATEGORIA    AS [SUB CAT.],');
+    SQL.Add('   FDS_DESCRIPCION    AS [DETALLE SUB CAT.],');
+    SQL.Add('   FVD_CODIGO         AS CODIGO, ');
+    SQL.Add('   FI_DESCRIPCION     AS [DESRIPCION DEL PRODUCTO], ');
+    SQL.Add('   FVD_CANTIDAD       AS CANTIDAD, ');
+    SQL.Add('   FVD_MTOBRUTO       AS [MONTO BRUTO],');
+    SQL.Add('   FVD_DESCUENTO      AS [DESCUENTOS],');
+    SQL.Add('   FVD_MTONETO        AS [MONTO NETO],');
+    SQL.Add('   FVD_IVA            AS [I.V.A.],');
+    SQL.Add('   FVD_COSTO          AS [COSTO],');
+    SQL.Add('   FVD_UTILIDADM      AS [UTILIDAD],');
+    SQL.Add('   (FVD_UTILIDADM / FVD_MTONETO) * 100     AS [UTILIDAD %]');
+
+    SQL.Add('INTO "' + rutaTemp + '\' + tablaReport + '"' );
+    SQL.Add('FROM "' + rutaTemp + '\' + tablasBD[10] + '"' );
+    SQL.Add('INNER JOIN "' + rutaTemp + '\' + tablasBD[1] + '" ON FVD_CODIGO      = FI_CODIGO');
+    SQL.Add('INNER JOIN "' + rutaTemp + '\' + tablasBD[3] + '" ON FI_CATEGORIA    = FD_CODIGO');
+    SQL.Add('INNER JOIN "' + rutaTemp + '\' + tablasBD[4] + '" ON FI_SUBCATEGORIA = FDS_CODIGO');
+
+
+    Memo1.Lines.Add(SQL.Text);
+    Open;
+    close;
+  end;
+
+end;
+
+
+procedure TfMainReport.ExportToExcel(DBQuery: TDBISAMQuery);
+var
+  ExcelApp    : OleVariant;
+  Workbook    : OleVariant;
+  Worksheet   : OleVariant;
+  Table       : OleVariant;
+  Column, Row : Integer;
+  FieldTypes  : array of TFieldType;
+  FieldNames  : array of string;
+  DataArray   : Variant;
+  respuesta   : Integer;
+
+Begin
+  ExcelApp := CreateOleObject('Excel.Application');
+  try
+    ExcelApp.Visible        := False; // Ocultar la ventana de Excel
+    ExcelApp.ScreenUpdating := False; // Desactivar la actualización de pantalla
+
+    // Crear un nuevo libro de trabajo
+    Workbook        := ExcelApp.Workbooks.Add;
+    Worksheet       := Workbook.Worksheets[1];
+    Worksheet.Name  := 'Datos Exportados';
+
+    // Inicializar arreglos para nombres de campos y tipos de campos
+    SetLength(FieldNames, DBQuery.FieldCount);
+    SetLength(FieldTypes, DBQuery.FieldCount);
+
+    // Configurar la tabla en la hoja de cálculo
+    // Establecer los encabezados de columna y almacenar tipos de datos
+    for Column := 0 to DBQuery.FieldCount - 1 do
+    begin
+      FieldNames[Column]                          := DBQuery.Fields[Column].FieldName;
+      FieldTypes[Column]                          := DBQuery.Fields[Column].DataType;
+      Worksheet.Cells[1, Column + 1].NumberFormat := '@';
+      Worksheet.Cells[1, Column + 1].Value        := FieldNames[Column];
+    end;
+
+    // Formatear las columnas antes de exportar los datos
+    for Column := 0 to DBQuery.FieldCount - 1 do
+    begin
+      case FieldTypes[Column] of
+        ftString:
+          // Aplicar formato de texto a la columna
+          Worksheet.Columns[Column + 1].NumberFormat := '@';
+        ftInteger:
+          Worksheet.Columns[Column + 1].NumberFormat := '0'; // Formato numérico
+        ftFloat, ftCurrency:
+          Worksheet.Columns[Column + 1].NumberFormat := '0,00'; // Formato numérico
+        ftDate, ftTime, ftDateTime:
+          Worksheet.Columns[Column + 1].NumberFormat := 'dd/mm/yyyy'; // Formato de fecha
+      end;
+    end;
+
+    // Preparar el rango para los datos
+    DBQuery.First;
+    DataArray := VarArrayCreate([0, DBQuery.RecordCount - 1, 0, DBQuery.FieldCount - 1], varVariant);
+
+    // Exportar los datos
+    Row := 0; // Comenzar en la fila 0 (índice de matriz)
+    while not DBQuery.Eof do
+    begin
+      for Column := 0 to DBQuery.FieldCount - 1 do
+      begin
+        case FieldTypes[Column] of
+          ftString:
+            DataArray[Row, Column] := DBQuery.Fields[Column].AsString;
+          ftInteger:
+            DataArray[Row, Column] := DBQuery.Fields[Column].AsVariant;
+          ftFloat, ftCurrency:
+            DataArray[Row, Column] := DBQuery.Fields[Column].AsVariant;
+          ftDate, ftTime, ftDateTime:
+            begin
+              if DBQuery.Fields[Column].AsDateTime > EncodeDate(1950,1,1)  then
+                DataArray[Row, Column] := VarAsType(DBQuery.Fields[Column].AsDateTime, varDate);
+            end;
+          else
+            DataArray[Row, Column] := Null;
+        end;
+      end;
+      Inc(Row);
+      DBQuery.Next;
+    end;
+
+    // Escribir datos en Excel de una sola vez
+    Worksheet.Range['A2'].Resize[DBQuery.RecordCount, DBQuery.FieldCount].Value := DataArray;
+
+    // Crear una tabla en Excel
+    Table             := Worksheet.ListObjects.Add(1, Worksheet.Range['A1'].Resize[DBQuery.RecordCount + 1, DBQuery.FieldCount], 0);
+    Table.Name        := 'DatosExportados';
+    Table.TableStyle  := 'TableStyleMedium9'; // Estilo de tabla predefinido
+
+    // Ajustar el ancho de las columnas
+    Worksheet.Columns.AutoFit;
+
+    // Mostrar mensaje de éxito
+
+    respuesta := MessageDlg('Exportación completada. ' + #13#10 + 'Verifique el archivo de Excel.',
+                             TMsgDlgType.mtInformation, [TMsgDlgBtn.mbOK], 0);
+
+  finally
+    // Mostrar la aplicación de Excel al usuario
+    ExcelApp.Visible        := True;
+    ExcelApp.ScreenUpdating := True; // Reactivar la actualización de pantalla
+    ExcelApp                := Unassigned;
+  end;
+
+
+end;
+
+
+function TfMainReport.usuarioTieneAcceso: Boolean;
+var
+  IniFile             : TIniFile;
+  Report01, Report02  : string;
+  UserIndexStr        : string;
+begin
+  Result        := False; // Inicializa como falso, ya que estamos buscando permiso
+  archivoINI    := ExtractFilePath(ParamStr(0)) + 'config.ini';
+  UserIndexStr  := IntToStr(userIndex);
+  IniFile := TIniFile.Create(archivoINI);
+  try
+    Report01 := IniFile.ReadString('REPORT', 'REPORT01', '');
+    Report02 := IniFile.ReadString('REPORT', 'REPORT02', '');
+    // Verifica si el UserIndex está en Report01 o Report02
+    if (Pos(UserIndexStr, Report01) > 0) or (Pos(UserIndexStr, Report02) > 0) then
+    begin
+      Result := True; // El usuario tiene acceso
+    end;
+  finally
+    IniFile.Free;
+  end;
+
+end;
+
+
+
+procedure TfMainReport.wwDBDateTimePicker1Change(Sender: TObject);
+begin
+  //if (ComboBox1.ItemIndex > -1) and (EsFechaValida(wwDBDateTimePicker1.Date)) then
+    calcularPeriodos;
+    btnCalcular.Enabled := True;
+    btnExportExcel.Enabled := False;
+
+end;
+
+
+{ TVendedores }
+
+constructor TVendedores.CreateVendedores(const AVendedorID, AVendedorNa: string);
+begin
+  inherited Create;
+  FVendedorID := AVendedorID;
+  FVendedorNa := AVendedorNa;
+end;
+
+end.

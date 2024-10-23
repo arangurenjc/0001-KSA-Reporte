@@ -1,0 +1,34 @@
+object frmProgressBar: TfrmProgressBar
+  Left = 0
+  Top = 0
+  Caption = 'frmProgressBar'
+  ClientHeight = 50
+  ClientWidth = 488
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object LabelProgress: TLabel
+    Left = 0
+    Top = 4
+    Width = 488
+    Height = 13
+    Align = alBottom
+    Alignment = taCenter
+    Caption = 'LabelProgress'
+    ExplicitTop = 296
+  end
+  object ProgressBar: TProgressBar
+    Left = 0
+    Top = 17
+    Width = 488
+    Height = 33
+    Align = alBottom
+    TabOrder = 0
+  end
+end

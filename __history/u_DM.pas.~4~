@@ -1,0 +1,27 @@
+unit u_DM;
+
+interface
+
+uses
+  System.SysUtils, System.Classes, Data.DB, dbisamtb;
+
+type
+  TDataModule3 = class(TDataModule)
+    a2DATA: TDBISAMDatabase;
+    t_User: TDBISAMTable;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  DataModule3: TDataModule3;
+
+implementation
+
+{%CLASSGROUP 'Vcl.Controls.TControl'}
+
+{$R *.dfm}
+
+end.

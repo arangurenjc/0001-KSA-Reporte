@@ -1,0 +1,19 @@
+object DM: TDM
+  OldCreateOrder = False
+  Height = 434
+  Width = 519
+  object a2DATA: TDBISAMDatabase
+    EngineVersion = '4.49 Build 4'
+    DatabaseName = 'DATA'
+    Directory = 'F:\a2KSA\a2KsaHome\Empre001\Data'
+    SessionName = 'Default'
+    Left = 88
+    Top = 64
+  end
+  object t_User: TDBISAMTable
+    DatabaseName = 'DATA'
+    EngineVersion = '4.49 Build 4'
+    Left = 200
+    Top = 64
+  end
+end

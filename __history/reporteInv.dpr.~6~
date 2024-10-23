@@ -1,0 +1,28 @@
+program reporteInv;
+
+uses
+  Winapi.Windows,
+  Winapi.Messages,
+  System.SysUtils,
+  System.Classes,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  u_DM in 'u_DM.pas' {DM: TDataModule},
+  u_Acceso in 'u_Acceso.pas' {Form1},
+  u_MainReporte in 'u_MainReporte.pas' {fMainReport};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TDM, DM);
+  Application.CreateForm(TfMainReport, fMainReport);
+  Application.CreateForm(TForm1, Form1);
+  //Application.CreateForm(TfMainReport, fMainReport);
+
+
+  Application.Run;
+end.

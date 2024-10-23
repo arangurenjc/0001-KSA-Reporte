@@ -1,0 +1,397 @@
+object fMainReport: TfMainReport
+  Left = 0
+  Top = 0
+  BorderIcons = [biSystemMenu, biMinimize]
+  BorderStyle = bsSingle
+  Caption = 'Menu Principal Inventario y Reportes'
+  ClientHeight = 431
+  ClientWidth = 554
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  Menu = MainMenu1
+  OldCreateOrder = False
+  Position = poScreenCenter
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object lblExport: TLabel
+    Left = 0
+    Top = 381
+    Width = 554
+    Height = 33
+    Align = alBottom
+    Alignment = taCenter
+    AutoSize = False
+    Caption = 'mensaje'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clRed
+    Font.Height = -13
+    Font.Name = 'Arial'
+    Font.Style = [fsBold]
+    ParentFont = False
+    Visible = False
+    StyleElements = []
+    ExplicitTop = 591
+    ExplicitWidth = 927
+  end
+  object Memo1: TMemo
+    Left = 952
+    Top = 8
+    Width = 1145
+    Height = 256
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Courier New'
+    Font.Style = []
+    Lines.Strings = (
+      'Memo1')
+    ParentFont = False
+    TabOrder = 0
+  end
+  object ProgressBar1: TProgressBar
+    Left = 0
+    Top = 414
+    Width = 554
+    Height = 17
+    Align = alBottom
+    Smooth = True
+    Style = pbstMarquee
+    MarqueeInterval = 1
+    Step = 1
+    TabOrder = 1
+    Visible = False
+    StyleElements = []
+    ExplicitTop = 291
+    ExplicitWidth = 299
+  end
+  object Button1: TButton
+    Left = 1175
+    Top = 286
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 2
+    OnClick = Button1Click
+  end
+  object Edit1: TEdit
+    Left = 1048
+    Top = 312
+    Width = 243
+    Height = 21
+    TabOrder = 3
+    Text = 'Edit1'
+  end
+  object Button2: TButton
+    Left = 1297
+    Top = 312
+    Width = 25
+    Height = 23
+    Caption = 'Button2'
+    TabOrder = 4
+    OnClick = Button2Click
+  end
+  object wwDBDateTimePicker2: TwwDBDateTimePicker
+    Left = 1048
+    Top = 288
+    Width = 121
+    Height = 21
+    CalendarAttributes.Font.Charset = DEFAULT_CHARSET
+    CalendarAttributes.Font.Color = clWindowText
+    CalendarAttributes.Font.Height = -11
+    CalendarAttributes.Font.Name = 'Tahoma'
+    CalendarAttributes.Font.Style = []
+    Epoch = 1950
+    ShowButton = True
+    TabOrder = 5
+  end
+  object CardPanel1: TCardPanel
+    AlignWithMargins = True
+    Left = 20
+    Top = 20
+    Width = 345
+    Height = 341
+    Margins.Left = 20
+    Margins.Top = 20
+    Margins.Bottom = 20
+    Align = alLeft
+    ActiveCard = cardVentas
+    BevelOuter = bvNone
+    Caption = 'CardPanel1'
+    TabOrder = 6
+    Visible = False
+    ExplicitHeight = 340
+    object cardCompras: TCard
+      Left = 0
+      Top = 0
+      Width = 345
+      Height = 341
+      BevelInner = bvRaised
+      BevelOuter = bvLowered
+      BevelWidth = 2
+      Caption = 'COM'
+      CardIndex = 0
+      TabOrder = 0
+      ExplicitHeight = 340
+      object Label1: TLabel
+        Left = 4
+        Top = 4
+        Width = 337
+        Height = 37
+        Align = alTop
+        Alignment = taCenter
+        AutoSize = False
+        Caption = 'Reporte de Compras'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlue
+        Font.Height = -16
+        Font.Name = 'Arial Black'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Layout = tlCenter
+      end
+      object GroupBox1: TGroupBox
+        Left = 50
+        Top = 65
+        Width = 241
+        Height = 121
+        Caption = 'Ventas Acumuladas de los ultimos Meses'
+        TabOrder = 0
+        object Label2: TLabel
+          Left = 21
+          Top = 28
+          Width = 96
+          Height = 13
+          Caption = 'Fecha Inicio Periodo'
+        end
+        object Label3: TLabel
+          Left = 21
+          Top = 58
+          Width = 141
+          Height = 13
+          Caption = 'Cant. Periodos Acumulados : '
+        end
+        object lblCantPeriodos: TLabel
+          Left = 168
+          Top = 58
+          Width = 7
+          Height = 16
+          Caption = '0'
+          Font.Charset = ANSI_CHARSET
+          Font.Color = clWindowText
+          Font.Height = -13
+          Font.Name = 'Arial'
+          Font.Style = [fsBold]
+          ParentFont = False
+        end
+        object wwDBDateTimePicker1: TwwDBDateTimePicker
+          Left = 123
+          Top = 25
+          Width = 95
+          Height = 21
+          CalendarAttributes.Font.Charset = DEFAULT_CHARSET
+          CalendarAttributes.Font.Color = clWindowText
+          CalendarAttributes.Font.Height = -11
+          CalendarAttributes.Font.Name = 'Tahoma'
+          CalendarAttributes.Font.Style = []
+          Epoch = 1950
+          ShowButton = True
+          TabOrder = 0
+          DisplayFormat = 'DD/MM/YYYY'
+          OnChange = wwDBDateTimePicker1Change
+        end
+        object chkData: TCheckBox
+          Left = 21
+          Top = 84
+          Width = 172
+          Height = 17
+          Caption = 'Incluir Data del Periodo Actual'
+          TabOrder = 1
+        end
+      end
+      object chkStatus_Inv: TCheckBox
+        Left = 50
+        Top = 208
+        Width = 233
+        Height = 17
+        Caption = 'Incluir Productos de Inventario Inactivos'
+        Checked = True
+        State = cbChecked
+        TabOrder = 1
+      end
+      object chkStatus_Prov: TCheckBox
+        Left = 50
+        Top = 224
+        Width = 233
+        Height = 17
+        Caption = 'Incluir Proveedores Inactivos'
+        Checked = True
+        State = cbChecked
+        TabOrder = 2
+      end
+    end
+    object cardVentas: TCard
+      Left = 0
+      Top = 0
+      Width = 345
+      Height = 341
+      BevelInner = bvRaised
+      BevelOuter = bvLowered
+      BevelWidth = 2
+      Caption = 'VTA'
+      CardIndex = 1
+      TabOrder = 1
+      ExplicitHeight = 340
+      object Label4: TLabel
+        Left = 4
+        Top = 4
+        Width = 337
+        Height = 37
+        Align = alTop
+        Alignment = taCenter
+        AutoSize = False
+        Caption = 'Reporte Unidades Vendidas'
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clBlue
+        Font.Height = -16
+        Font.Name = 'Arial Black'
+        Font.Style = [fsBold]
+        ParentFont = False
+        Layout = tlCenter
+        ExplicitLeft = 8
+        ExplicitTop = 12
+      end
+      object Label5: TLabel
+        Left = 57
+        Top = 79
+        Width = 69
+        Height = 13
+        Caption = 'Desde Fecha :'
+      end
+      object cbVendedores: TwwDBComboBox
+        Left = 56
+        Top = 183
+        Width = 215
+        Height = 21
+        ShowButton = True
+        Style = csDropDown
+        MapList = False
+        AllowClearKey = False
+        DropDownCount = 8
+        Enabled = False
+        ItemHeight = 0
+        Sorted = False
+        TabOrder = 0
+        UnboundDataType = wwDefault
+        OnChange = cbVendedoresChange
+      end
+      object dtpFechaPeriodoVentas: TwwDBDateTimePicker
+        Left = 56
+        Top = 95
+        Width = 121
+        Height = 21
+        CalendarAttributes.Font.Charset = DEFAULT_CHARSET
+        CalendarAttributes.Font.Color = clWindowText
+        CalendarAttributes.Font.Height = -11
+        CalendarAttributes.Font.Name = 'Tahoma'
+        CalendarAttributes.Font.Style = []
+        Epoch = 1950
+        ShowButton = True
+        TabOrder = 1
+      end
+      object chkVendedor: TCheckBox
+        Left = 56
+        Top = 164
+        Width = 121
+        Height = 17
+        Caption = 'Filtrar por Vendedor'
+        TabOrder = 2
+        OnClick = chkVendedorClick
+      end
+      object chkFechaExtendida: TCheckBox
+        Left = 56
+        Top = 118
+        Width = 215
+        Height = 17
+        Caption = 'Usar fecha extendida hasta fecha actual'
+        TabOrder = 3
+      end
+    end
+  end
+  object Panel1: TPanel
+    AlignWithMargins = True
+    Left = 371
+    Top = 20
+    Width = 154
+    Height = 341
+    Margins.Top = 20
+    Margins.Bottom = 20
+    Align = alLeft
+    BevelInner = bvSpace
+    BevelKind = bkTile
+    BevelOuter = bvLowered
+    TabOrder = 7
+    Visible = False
+    ExplicitLeft = 351
+    ExplicitTop = 8
+    ExplicitHeight = 309
+    object btnCalcular: TButton
+      Left = 24
+      Top = 56
+      Width = 101
+      Height = 25
+      Caption = 'Calcular'
+      Enabled = False
+      TabOrder = 0
+      OnClick = btnCalcularClick
+    end
+    object btnExportExcel: TButton
+      Left = 24
+      Top = 248
+      Width = 101
+      Height = 25
+      Caption = 'Exportar Excel'
+      Enabled = False
+      TabOrder = 1
+      OnClick = btnExportExcelClick
+    end
+    object Button3: TButton
+      Left = 36
+      Top = 142
+      Width = 89
+      Height = 25
+      Caption = 'Button3'
+      TabOrder = 2
+      Visible = False
+      OnClick = Button3Click
+    end
+  end
+  object MainMenu1: TMainMenu
+    Left = 512
+    Top = 400
+    object I1: TMenuItem
+      Caption = 'Inventario'
+      object G1: TMenuItem
+        Caption = 'Garantia'
+      end
+    end
+    object R1: TMenuItem
+      Caption = 'Reporte'
+      OnClick = R1Click
+      object c1: TMenuItem
+        Caption = 'Compras'
+        OnClick = c1Click
+      end
+      object V1: TMenuItem
+        Caption = 'Ventas'
+        OnClick = V1Click
+      end
+    end
+  end
+end

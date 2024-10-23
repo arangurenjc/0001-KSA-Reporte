@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2024/03/05 16:16:12.000.624,=C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2024/03/05 16:22:23.000.402,=C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2024/03/05 17:03:20.000.433,=C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2024/03/26 13:11:29.000.674,=C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2024/03/26 14:40:38.000.202,=C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2024/03/26 14:53:04.000.718,=C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2024/04/01 13:12:48.000.422,=C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2024/08/28 16:34:00.000.282,=C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>2024/08/28 16:34:35.000.106,=C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit3.pas</Transaction>
+    <Transaction>2024/08/28 17:16:49.000.006,C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit2.dfm=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_MainReporte.dfm</Transaction>
+    <Transaction>2024/08/28 17:16:49.000.006,C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit2.pas=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_MainReporte.pas</Transaction>
+    <Transaction>2024/08/28 17:17:09.000.059,C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit3.dfm=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_DM.dfm</Transaction>
+    <Transaction>2024/08/28 17:17:09.000.059,C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Unit3.pas=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_DM.pas</Transaction>
+    <Transaction>2024/08/28 17:32:30.000.114,C:\Users\gerencia03.ECOGRASAS\Documents\Embarcadero\Studio\Projects\Project2.dproj=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\reporteInv.dproj</Transaction>
+    <Transaction>2024/08/28 17:58:43.000.456,=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\Unit1.pas</Transaction>
+    <Transaction>2024/08/28 18:02:46.000.195,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_Acceso.pas=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\Unit1.pas</Transaction>
+    <Transaction>2024/08/28 18:02:46.000.195,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_Acceso.dfm=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\Unit1.dfm</Transaction>
+    <Transaction>2024/09/02 09:38:39.000.277,=E:\Embarcadero\Proyectos\016-DesconciliarBanco\uFSplash.pas</Transaction>
+    <Transaction>2024/09/02 09:39:45.000.811,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\uFSplash.pas=E:\Embarcadero\Proyectos\016-DesconciliarBanco\uFSplash.pas</Transaction>
+    <Transaction>2024/09/02 09:39:45.000.811,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\uFSplash.dfm=E:\Embarcadero\Proyectos\016-DesconciliarBanco\uFSplash.dfm</Transaction>
+    <Transaction>2024/09/02 09:52:30.000.288,=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\Unit1.pas</Transaction>
+    <Transaction>2024/09/12 15:51:41.000.112,=E:\Embarcadero\Proyectos\025-Main Branch-Beta\Unit1.pas</Transaction>
+    <Transaction>2024/09/12 16:11:27.000.393,E:\Embarcadero\Proyectos\025-Main Branch-Beta\Unit1.pas=</Transaction>
+    <Transaction>2024/09/16 11:51:13.000.520,=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\Unit1.pas</Transaction>
+    <Transaction>2024/09/16 11:52:15.000.291,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_ProgressForm.dfm=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\Unit1.dfm</Transaction>
+    <Transaction>2024/09/16 11:52:15.000.291,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_ProgressForm.pas=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\Unit1.pas</Transaction>
+    <Transaction>2024/09/19 12:53:32.000.410,=E:\Embarcadero\Proyectos\022-asientoContableNomina\uMainNomina.pas</Transaction>
+    <Transaction>2024/09/19 13:13:03.000.420,E:\Embarcadero\Proyectos\022-asientoContableNomina\uMainNomina.pas=</Transaction>
+    <Transaction>2024/09/19 13:28:09.000.780,=E:\Embarcadero\Proyectos\022-asientoContableNomina\uMainNomina.pas</Transaction>
+    <Transaction>2024/09/19 14:46:19.000.889,E:\Embarcadero\Proyectos\022-asientoContableNomina\uMainNomina.pas=</Transaction>
+    <Transaction>2024/09/19 15:51:24.000.061,=E:\ProyectosDelphi\ChinoUPATA\u_frmMain.pas</Transaction>
+    <Transaction>2024/09/19 15:51:45.000.507,E:\ProyectosDelphi\ChinoUPATA\u_frmMain.pas=</Transaction>
+    <Transaction>2024/09/19 15:52:06.000.410,=E:\Embarcadero\Proyectos\006-appModificarPeriodoNomina\f_Main.pas</Transaction>
+    <Transaction>2024/09/19 15:53:10.000.730,E:\Embarcadero\Proyectos\006-appModificarPeriodoNomina\f_Main.pas=</Transaction>
+    <Transaction>2024/09/19 15:53:38.000.894,=E:\Embarcadero\Proyectos\022-asientoContableNomina\uMainNomina.pas</Transaction>
+    <Transaction>2024/09/19 16:01:12.000.477,E:\Embarcadero\Proyectos\022-asientoContableNomina\uMainNomina.pas=</Transaction>
+    <Transaction>2024/09/30 14:26:46.000.579,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_frmProgress.dfm=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_ProgressForm.dfm</Transaction>
+    <Transaction>2024/09/30 14:26:46.000.579,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_frmProgress.pas=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_ProgressForm.pas</Transaction>
+    <Transaction>2024/09/30 14:27:01.000.701,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_frmMainReporte.dfm=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_MainReporte.dfm</Transaction>
+    <Transaction>2024/09/30 14:27:01.000.701,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_frmMainReporte.pas=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_MainReporte.pas</Transaction>
+    <Transaction>2024/09/30 14:37:49.000.772,=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\Unit1.pas</Transaction>
+    <Transaction>2024/09/30 14:38:23.000.977,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_UnitConsulta.pas=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\Unit1.pas</Transaction>
+    <Transaction>2024/10/04 16:45:06.000.890,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_UnitConsulta.pas=</Transaction>
+    <Transaction>2024/10/04 17:15:35.000.003,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_frmMainReporte.pas=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_MainReporte.pas</Transaction>
+    <Transaction>2024/10/04 17:15:35.000.003,E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_frmMainReporte.dfm=E:\Embarcadero\Proyectos\026-KSA Home Reporte Inventario\u_MainReporte.dfm</Transaction>
+  </Transactions>
+</BorlandProject>

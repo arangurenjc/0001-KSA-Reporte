@@ -1,0 +1,56 @@
+unit u_UnitConsulta;
+
+interface
+
+uses
+  Classes, DBISAMTb, Forms, ufrmProgreso, SysUtils;
+
+type
+  TConsultaHilo = class(TThread)
+  private
+    FQuery: TDBISAMQuery;
+  protected
+    procedure Execute; override;
+  public
+    constructor Create(CreateSuspended: Boolean; AQuery: TDBISAMQuery);
+  end;
+
+implementation
+
+uses
+  ufrmMain; // Asegúrate de tener el formulario principal en el unit
+
+constructor TConsultaHilo.Create(CreateSuspended: Boolean; AQuery: TDBISAMQuery);
+begin
+  inherited Create(CreateSuspended);
+  FreeOnTerminate := True;
+  FQuery := AQuery;
+end;
+
+procedure TConsultaHilo.Execute;
+begin
+  try
+    Synchronize(procedure
+    begin
+      // Mostrar el formulario de progreso
+      frmProgreso := TfrmProgreso.Create(nil);
+      frmProgreso.Show;
+    end);
+
+    // Ejecutar la consulta que tarda mucho tiempo
+    FQuery.Open;
+
+  finally
+    Synchronize(procedure
+    begin
+      // Cerrar el formulario de progreso cuando la consulta finalice
+      if Assigned(frmProgreso) then
+      begin
+        frmProgreso.Close;
+        FreeAndNil(frmProgreso);
+      end;
+    end);
+  end;
+end;
+
+end.

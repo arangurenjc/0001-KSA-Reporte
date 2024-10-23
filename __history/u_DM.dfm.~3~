@@ -1,0 +1,17 @@
+object DataModule3: TDataModule3
+  OldCreateOrder = False
+  Height = 434
+  Width = 519
+  object a2DATA: TDBISAMDatabase
+    EngineVersion = '4.49 Build 4'
+    DatabaseName = 'DATA'
+    SessionName = 'Default'
+    Left = 88
+    Top = 64
+  end
+  object t_User: TDBISAMTable
+    EngineVersion = '4.49 Build 4'
+    Left = 272
+    Top = 152
+  end
+end

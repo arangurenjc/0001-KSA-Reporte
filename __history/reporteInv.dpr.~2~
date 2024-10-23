@@ -1,0 +1,16 @@
+program reporteInv;
+
+uses
+  Vcl.Forms,
+  u_MainReporte in 'u_MainReporte.pas' {fMainReport},
+  u_DM in 'u_DM.pas' {DM: TDataModule};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TfMainReport, fMainReport);
+  Application.CreateForm(TDM, DM);
+  Application.Run;
+end.
