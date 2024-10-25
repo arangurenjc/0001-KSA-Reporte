@@ -47,16 +47,22 @@ type
     btnExportExcel      : TButton;
     Button3             : TButton;
     Button1             : TButton;
+    spbExportExcel      : TSpeedButton;
+    spbCalcularReport   : TSpeedButton;
+    spbExportTxt        : TSpeedButton;
 
     chkStatus_Inv       : TCheckBox;
     chkStatus_Prov      : TCheckBox;
     chkData             : TCheckBox;
 
-    wwDBDateTimePicker1 : TwwDBDateTimePicker;
+    dtpFechaIniCom      : TwwDBDateTimePicker;
     wwDBDateTimePicker2 : TwwDBDateTimePicker;
-    dtpFechaPeriodoVentas: TwwDBDateTimePicker;
+    dtpFechaIni         : TwwDBDateTimePicker;
+    dtpFechaFin         : TwwDBDateTimePicker;
+    dtpFechaDataIni     : TwwDBDateTimePicker;
+    dtpFechaDataFin     : TwwDBDateTimePicker;
 
-    Panel1              : TPanel;
+    pnlBotonesCalculo   : TPanel;
     Memo1               : TMemo;
     GroupBox1           : TGroupBox;
 
@@ -65,6 +71,11 @@ type
     lblCantPeriodos     : TLabel;
     lblExport           : TLabel;
     Label1              : TLabel;
+    Label7              : TLabel;
+    Label8              : TLabel;
+    Label4              : TLabel;
+    Label5              : TLabel;
+    Label6              : TLabel;
 
     ProgressBar1        : TProgressBar;
 
@@ -73,24 +84,27 @@ type
     CardPanel1          : TCardPanel;
     cardCompras         : TCard;
     cardVentas          : TCard;
-    cbVendedores: TwwDBComboBox;
-    chkVendedor: TCheckBox;
-    Label4: TLabel;
-    Label5: TLabel;
-    chkFechaExtendida: TCheckBox;
-    imgCollection: TImageCollection;
-    imgList: TVirtualImageList;
-    spbExportExcel: TSpeedButton;
-    spbCalcularReport: TSpeedButton;
-    chkDepartamento: TCheckBox;
-    cbDepartamentos: TwwDBComboBox;
-    cbDepositos: TwwDBComboBox;
-    chkDeposito: TCheckBox;
-    spbExportTxt: TSpeedButton;
+
+    cbVendedores        : TwwDBComboBox;
+    cbDepartamentos     : TwwDBComboBox;
+    cbDepositos         : TwwDBComboBox;
+
+    chkProductosInactivos: TCheckBox;
+    chkDepartamento     : TCheckBox;
+    chkDeposito         : TCheckBox;
+    chkVendedor         : TCheckBox;
+
+    imgCollection       : TImageCollection;
+    imgList             : TVirtualImageList;
+
+    GroupBox2           : TGroupBox;
+    scLabel2: TscLabel;
+    scLabel3: TscLabel;
+    pnlInfoApp: TPanel;
 
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure wwDBDateTimePicker1Change(Sender: TObject);
+    procedure dtpFechaIniComChange(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
@@ -111,6 +125,7 @@ type
     procedure btnExportExcelClick(Sender: TObject);
 
     procedure spbExportTxtClick(Sender: TObject);
+    procedure dtpFechaDataFinChange(Sender: TObject);
 
 
   private
@@ -202,8 +217,9 @@ var
   tablaReport,
   vendedor,
   dpto,
-  report01,
-  report02    : String;
+  reportComAc,
+  reportComEx,
+  reportVtaAc : String;
   tipoReport,
   nPeriodo,
   deposito    : Integer;
@@ -321,9 +337,6 @@ end;
 
 procedure TfMainReport.btnExportExcelClick(Sender: TObject);
 var
-  //ExecuteResult: HINST;
-  //ExePath : string;
-  //FileStream  : TFileStream;
   FilePath    : string;
   ZipFile     : TZipFile;
   i           : Integer;
@@ -392,17 +405,19 @@ end;
 
 procedure TfMainReport.c1Click(Sender: TObject);
 begin
-  tipoReport := 1;
+  tipoReport              := 1;
   spbExportTxt.Enabled    := false;
   spbExportExcel.Enabled  := false;
+  dtpFechaDataIni.date    := EncodeDate(YearOf(Now), MonthOf(Now),1);
+  dtpFechaDataFin.date    := Now;
 
   if not CardPanel1.Visible then
   begin
     CardPanel1.Visible          := True;
     CardPanel1.ActiveCardIndex  := 0;
 
-    if not Panel1.Visible then
-      Panel1.Visible            := True;
+    if not pnlBotonesCalculo.Visible then
+      pnlBotonesCalculo.Visible := True;
   end
   else
     CardPanel1.ActiveCardIndex  := 0;
@@ -412,7 +427,7 @@ end;
 
 procedure TfMainReport.V1Click(Sender: TObject);
 begin
-  tipoReport := 2;
+  tipoReport              := 2;
   spbExportTxt.Enabled    := false;
   spbExportExcel.Enabled  := false;
 
@@ -421,8 +436,8 @@ begin
     CardPanel1.Visible          := True;
     CardPanel1.ActiveCardIndex  := 1;
 
-    if not Panel1.Visible then
-      Panel1.Visible            := True;
+    if not pnlBotonesCalculo.Visible then
+      pnlBotonesCalculo.Visible := True;
   end
   else
     CardPanel1.ActiveCardIndex  := 1;
@@ -465,15 +480,16 @@ var
   I, indexCombo, dias : Integer;
 
 begin
-  selectedMonth := MonthOf(wwDBDateTimePicker1.Date);
-  selectedYear  := YearOf(wwDBDateTimePicker1.Date);
-  dias          := DaysBetween(wwDBDateTimePicker1.Date,
-                               wwDBDateTimePicker1.MaxDate);
+  selectedMonth := MonthOf(dtpFechaIniCom.Date);
+  selectedYear  := YearOf(dtpFechaIniCom.Date);
+  dias          := DaysBetween(dtpFechaIniCom.Date,
+                               dtpFechaIniCom.MaxDate);
   indexCombo    := Trunc(Roundto( (dias/ 30),0));
   lblCantPeriodos.Caption := IntToStr(indexCombo);
 
   for I := 1 to indexCombo  do
   begin
+    //ShowMessage('Posicion ' + IntToStr(I));
     periodos[I].Periodo := mesesPeriodo[selectedMonth] + '-' + IntToStr(selectedYear);
     Periodos[I].FechaI  := EncodeDate(selectedYear,selectedMonth,1);
     Periodos[I].FechaF  := EndOfAMonth(YearOf(Periodos[I].FechaI), MonthOf(Periodos[I].FechaI));
@@ -486,9 +502,13 @@ begin
     end;
   end;
 
-  periodos[7].Periodo := 'DATA';
-  Periodos[7].FechaI  := EncodeDate(YearOf(Now),MonthOf(Now),1);
-  Periodos[7].FechaF  := EndOfAMonth(YearOf(Periodos[7].FechaI), MonthOf(Periodos[7].FechaI));
+  //periodos[7].Periodo := mesesPeriodo[MonthOf(dtpFechaDataIni.Date)] + '-' +
+  //                       Format('%.2d', [DayOf(dtpFechaDataFin.Date)]) ;  //'DATA';
+
+  //Periodos[7].FechaI  := dtpFechaDataIni.Date;
+  //Periodos[7].FechaF  := dtpFechaDataFin.Date;
+
+  //EndOfAMonth(YearOf(Periodos[7].FechaI), MonthOf(Periodos[7].FechaI));
 
 end;
 
@@ -519,7 +539,7 @@ begin
                 inc(i);
             end;
           end);
-        //lblExport.Visible := True;
+
         lblExport.Caption := 'Espére mientras se realiza la importación de Datos' + #13#10 +
                              'este proceso puede demorar, sea paciente' + #13#10 +
                              '¡No Cierre el Generador de Reporte... !';
@@ -1543,18 +1563,18 @@ procedure TfMainReport.FormCreate(Sender: TObject);
 //  i: integer;
 begin
   accesoPermitido := False;
-  flagDpto := False;
-  flagVend := flagDpto;
-  flagDepo := flagDpto;
+  flagDpto        := False;
+  flagVend        := False;
+  flagDepo        := False;
 
   getVariableEntorno;
   Memo1.Lines.Add(rutaData);
   Memo1.Lines.Add(rutaTemp);
-  Memo1.Lines.Add(report01);
-  Memo1.Lines.Add(report02);
+  //Memo1.Lines.Add(report01);
+  //Memo1.Lines.Add(report02);
   Memo1.Lines.Add(IntToStr(nPeriodo));
   Memo1.Lines.Add(DateToStr(fechaInicio));
-  
+
   mesFin  := MonthOf(Now)-1;
   yearFin := YearOf(Now);
 
@@ -1571,8 +1591,8 @@ begin
       end;
   end;
 
-  wwDBDateTimePicker1.MinDate := encodeDate(yearIni,mesIni,1);
-  wwDBDateTimePicker1.MaxDate := EndOfAMonth(yearFin, mesFin);
+  dtpFechaIniCom.MinDate := encodeDate(yearIni,mesIni,1);
+  dtpFechaIniCom.MaxDate := EndOfAMonth(yearFin, mesFin);
 end;
 
 
@@ -1629,8 +1649,9 @@ begin
     rutaServer  := IniFile.ReadString('RUTAS', 'SERVER', '');
     portServer  := IniFile.ReadString('RUTAS', 'PORT', '');
 
-    Report01    := IniFile.ReadString('REPORT', 'REPORT01', '');
-    Report02    := IniFile.ReadString('REPORT', 'REPORT02', '');
+    reportComAc := IniFile.ReadString('REPORT', 'REPORTCOMAC', '');
+    reportComEx := IniFile.ReadString('REPORT', 'REPORTCOMEX', '');
+    reportVtaAc := IniFile.ReadString('REPORT', 'REPORTVTAAC', '');
 
     nPeriodo    := IniFile.ReadInteger('PERIODOS', 'PERIODO', 0);
     fechaInicio := IniFile.ReadDate('PERIODOS', 'FINICIO', now);
@@ -1841,7 +1862,19 @@ begin
     SQL.Add('   FI_CAPACIDAD, FI_MODELO, FI_PROVEEDORCOMPRANAC');
 
     SQL.Add('FROM "' + rutaTemp + '\SINVENTARIO"');
-    SQL.Add('WHERE FI_CODIGO IS NOT NULL AND FI_STATUS = 1');
+    SQL.Add('WHERE FI_CODIGO IS NOT NULL ');
+
+    if tipoReport = 1 then
+      if chkStatus_Inv.Checked = True then
+        SQL.Add('   AND FI_STATUS IN (0, 1) ')
+      else
+        SQL.Add('   AND FI_STATUS IN (1) ')
+    else
+      if chkProductosInactivos.Checked = True then
+        SQL.Add('   AND FI_STATUS IN (0, 1) ')
+      else
+        SQL.Add('   AND FI_STATUS IN (1) ');
+
     SQL.Add('ORDER BY FI_CODIGO');
 
     Memo1.Lines.Add(SQL.Text);
@@ -2122,12 +2155,12 @@ begin
 
     SQL.Add('GROUP BY FDI_CODIGO');
 
-    ParamByName('Fecha1').AsDate := wwDBDateTimePicker1.MinDate;
+    ParamByName('Fecha1').AsDate := Periodos[7].FechaI; //wwDBDateTimePicker1.MinDate;
 
-    if chkData.Checked = True then
-      ParamByName('Fecha2').AsDate := Periodos[7].FechaF
-    else
-      ParamByName('Fecha2').AsDate := wwDBDateTimePicker1.MaxDate;
+    //if chkData.Checked = True then
+      ParamByName('Fecha2').AsDate := Periodos[7].FechaF;
+    //else
+    //  ParamByName('Fecha2').AsDate := wwDBDateTimePicker1.MaxDate;
 
     MEMO1.Lines.Add( sql.Text);
     ExecSQL;
@@ -2138,13 +2171,14 @@ end;
 
 
 procedure TfMainReport.insertTablaTMP_VtaDe(tabla: string);
+
+
 begin
   with DM.SQL_Insert do
   begin
     Close;
     Active := False;
     SQL.Clear;
-
     Memo1.Lines.Add('================== Insertando Detalle Venta ==================');
     SQL.Add('INSERT INTO ' + tabla);
     SQL.Add('SELECT FDI_CODIGO,');
@@ -2153,51 +2187,90 @@ begin
             '         WHEN FDI_TIPOOPERACION = 12 THEN FDI_CANTIDAD * -1 ' +
             '    END) AS CANTIDAD,');
 
-    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_CANTIDAD * FDI_PRECIOSINDESCUENTO) ' +
-            '         WHEN FDI_TIPOOPERACION = 12 THEN (FDI_CANTIDAD * FDI_PRECIOSINDESCUENTO) * -1 ' +
-            '    END / FTI_FACTORREFERENCIA) AS [MONTO BRUTO],');
 
-    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN ' +
-            '              ((((FDI_PRECIOCONDESCUENTO * (FDI_PORCENTDESCUENTO1/100)) + ' +
-            '              (FDI_PRECIOCONDESCUENTO * (1-(FDI_PORCENTDESCUENTO1/100))) * ' +
-            '              (FDI_PORCENTDESCUENTO2/100)) + FDI_DESCUENTOPARCIAL) * FDI_CANTIDAD) ' +
-            '         WHEN FDI_TIPOOPERACION = 12 THEN ' +
-            '              ((((FDI_PRECIOCONDESCUENTO * (FDI_PORCENTDESCUENTO1/100)) + ' +
-            '              (FDI_PRECIOCONDESCUENTO * (1-(FDI_PORCENTDESCUENTO1/100))) * ' +
-            '              (FDI_PORCENTDESCUENTO2/100)) + FDI_DESCUENTOPARCIAL) * FDI_CANTIDAD) * -1 ' +
-            '    END / FTI_FACTORREFERENCIA) AS [DESCUENTOS],');
+    //Calcular Columna de MONTO BRUTO Aplicando compracion de Moneda USD - VES
+    SQL.Add('SUM(CASE WHEN FDI_MONEDA = 1 THEN');
+    SQL.Add('         CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_CANTIDAD * FDI_PRECIOSINDESCUENTO)');
+    SQL.Add('              WHEN FDI_TIPOOPERACION = 12 THEN (FDI_CANTIDAD * FDI_PRECIOSINDESCUENTO) * -1');
+    SQL.Add('         END / FTI_FACTORREFERENCIA');
+    SQL.Add('         WHEN FDI_MONEDA = 2 THEN');
+    SQL.Add('         CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_CANTIDAD * FDI_PRECIOSINDESCUENTO) ');
+    SQL.Add('              WHEN FDI_TIPOOPERACION = 12 THEN (FDI_CANTIDAD * FDI_PRECIOSINDESCUENTO) * -1 ');
+    SQL.Add('         END  END) AS [MONTO BRUTO],');
 
-    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD) ' +
-            '         WHEN FDI_TIPOOPERACION = 12 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD) * -1 ' +
-            '    END / FTI_FACTORREFERENCIA) AS [MONTO NETO],');
+    //Calcular Columna de DESCUENTOS Aplicando compracion de Moneda USD - VES
+    SQL.Add('SUM(CASE WHEN FDI_MONEDA = 1 THEN');
+    SQL.Add('         CASE WHEN FDI_TIPOOPERACION = 11 THEN ((((FDI_PRECIOCONDESCUENTO * (FDI_PORCENTDESCUENTO1/100)) + ');
+    SQL.Add('                                               (FDI_PRECIOCONDESCUENTO * (1-(FDI_PORCENTDESCUENTO1/100))) * ');
+    SQL.Add('                                               (FDI_PORCENTDESCUENTO2/100)) + FDI_DESCUENTOPARCIAL) * ');
+    SQL.Add('                                                FDI_CANTIDAD) ');
+    SQL.Add('              WHEN FDI_TIPOOPERACION = 12 THEN ((((FDI_PRECIOCONDESCUENTO * (FDI_PORCENTDESCUENTO1/100)) + ');
+    SQL.Add('                                              (FDI_PRECIOCONDESCUENTO * (1-(FDI_PORCENTDESCUENTO1/100))) * ');
+    SQL.Add('                                               (FDI_PORCENTDESCUENTO2/100)) + FDI_DESCUENTOPARCIAL) * ');
+    SQL.Add('                                                FDI_CANTIDAD) * -1 END / FTI_FACTORREFERENCIA');
+    SQL.Add('         WHEN FDI_MONEDA = 2 THEN');
+    SQL.Add('         CASE WHEN FDI_TIPOOPERACION = 11 THEN ((((FDI_PRECIOCONDESCUENTO * (FDI_PORCENTDESCUENTO1/100)) + ');
+    SQL.Add('                                               (FDI_PRECIOCONDESCUENTO * (1-(FDI_PORCENTDESCUENTO1/100))) * ');
+    SQL.Add('                                               (FDI_PORCENTDESCUENTO2/100)) + FDI_DESCUENTOPARCIAL) * ');
+    SQL.Add('                                                FDI_CANTIDAD) ');
+    SQL.Add('              WHEN FDI_TIPOOPERACION = 12 THEN ((((FDI_PRECIOCONDESCUENTO * (FDI_PORCENTDESCUENTO1/100)) + ');
+    SQL.Add('                                              (FDI_PRECIOCONDESCUENTO * (1-(FDI_PORCENTDESCUENTO1/100))) * ');
+    SQL.Add('                                               (FDI_PORCENTDESCUENTO2/100)) + FDI_DESCUENTOPARCIAL) * ');
+    SQL.Add('                                                FDI_CANTIDAD) * -1 ');
+    SQL.Add('    END END) AS [DESCUENTOS],');
 
-    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD * (FDI_IMPUESTO1/100)) ' +
-            '         WHEN FDI_TIPOOPERACION = 12 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD * (FDI_IMPUESTO1/100)) * -1 ' +
-            '    END / FTI_FACTORREFERENCIA) AS [I.V.A.],');
+    //Calcular Columna de MONTO NETO Aplicando compracion de Moneda USD - VES
+    SQL.Add('SUM(CASE WHEN FDI_MONEDA = 1 THEN ');
+    SQL.Add('     CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD) ');
+    SQL.Add('          WHEN FDI_TIPOOPERACION = 12 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD) * -1 ');
+    SQL.Add('     END / FTI_FACTORREFERENCIA ');
+    SQL.Add('     WHEN FDI_MONEDA = 2 THEN ');
+    SQL.Add('     CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD) ');
+    SQL.Add('          WHEN FDI_TIPOOPERACION = 12 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD) * -1 ');
+    SQL.Add('     END  END) AS [MONTO NETO], ');
 
-    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_CANTIDAD * FDI_COSTODEVENTAS) ' +
-            '         WHEN FDI_TIPOOPERACION = 12 THEN (FDI_CANTIDAD * FDI_COSTODEVENTAS) * -1  ' +
-            '    END / FTI_FACTORREFERENCIA) AS COSTOS,');
+    //Calcular Columna de IVA Aplicando compracion de Moneda USD - VES
+    SQL.Add('SUM(CASE WHEN FDI_MONEDA = 1 THEN ');
+    SQL.Add('     CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD * (FDI_IMPUESTO1/100)) ');
+    SQL.Add('          WHEN FDI_TIPOOPERACION = 12 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD * (FDI_IMPUESTO1/100)) * -1 ');
+    SQL.Add('     END / FTI_FACTORREFERENCIA ');
+    SQL.Add('     WHEN FDI_MONEDA = 2 THEN ');
+    SQL.Add('     CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD * (FDI_IMPUESTO1/100)) ');
+    SQL.Add('          WHEN FDI_TIPOOPERACION = 12 THEN (FDI_PRECIOBASECOMISION * FDI_CANTIDAD * (FDI_IMPUESTO1/100)) * -1 ');
+    SQL.Add('     END END) AS [I.V.A.],');
 
-    SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN ' +
-            '         ((FDI_PRECIOBASECOMISION * FDI_CANTIDAD) - (FDI_CANTIDAD * FDI_COSTODEVENTAS)) ' +
-            '         WHEN FDI_TIPOOPERACION = 12 THEN ' +
-            '         ((FDI_PRECIOBASECOMISION * FDI_CANTIDAD) - (FDI_CANTIDAD * FDI_COSTODEVENTAS)) * -1 ' +
-            '    END / FTI_FACTORREFERENCIA) AS [UTILIDAD USD],');
+    //Calcular Columna de COSTOS Aplicando compracion de Moneda USD - VES
+    SQL.Add('SUM(CASE WHEN FDI_MONEDA = 1 THEN ');
+    SQL.Add('     CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_CANTIDAD * FDI_COSTODEVENTAS) ');
+    SQL.Add('          WHEN FDI_TIPOOPERACION = 12 THEN (FDI_CANTIDAD * FDI_COSTODEVENTAS) * -1 ');
+    SQL.Add('     END / FTI_FACTORREFERENCIA ');
+    SQL.Add('     WHEN FDI_MONEDA = 2 THEN ');
+    SQL.Add('     CASE WHEN FDI_TIPOOPERACION = 11 THEN (FDI_CANTIDAD * FDI_COSTODEVENTAS) ');
+    SQL.Add('          WHEN FDI_TIPOOPERACION = 12 THEN (FDI_CANTIDAD * FDI_COSTODEVENTAS) * -1 ');
+    SQL.Add('     END  END) AS COSTOS, ');
 
-    SQL.Add('0.00 AS [UTILIDAD %]');
+     //Calcular Columna de UTILIDAD Aplicando compracion de Moneda USD - VES
+    SQL.Add('SUM(CASE WHEN FDI_MONEDA = 1 THEN');
+    SQL.Add('     CASE WHEN FDI_TIPOOPERACION = 11 THEN ((FDI_PRECIOBASECOMISION * FDI_CANTIDAD) -');
+    SQL.Add('                                           (FDI_CANTIDAD * FDI_COSTODEVENTAS))');
+    SQL.Add('          WHEN FDI_TIPOOPERACION = 12 THEN ((FDI_PRECIOBASECOMISION * FDI_CANTIDAD) - ');
+    SQL.Add('                                           (FDI_CANTIDAD * FDI_COSTODEVENTAS)) * -1 ');
+    SQL.Add('     END / FTI_FACTORREFERENCIA ');
+    SQL.Add('     WHEN FDI_MONEDA = 2 THEN ');
+    SQL.Add('     CASE WHEN FDI_TIPOOPERACION = 11 THEN ((FDI_PRECIOBASECOMISION * FDI_CANTIDAD) - ');
+    SQL.Add('                                           (FDI_CANTIDAD * FDI_COSTODEVENTAS)) ');
+    SQL.Add('          WHEN FDI_TIPOOPERACION = 12 THEN ((FDI_PRECIOBASECOMISION * FDI_CANTIDAD) - ');
+    SQL.Add('                                           (FDI_CANTIDAD * FDI_COSTODEVENTAS)) * -1 ');
+    SQL.Add('     END END) AS [UTILIDAD USD],');
 
+    SQL.Add('0.00 AS [UTILIDAD %] ');
 
-    //SQL.Add('FROM "' + rutaData + '\SDETALLEVENTA"');
-    //SQL.Add('INNER JOIN "' + rutaData + '\SOPERACIONINV"' + ' ON FDI_OPERACION_AUTOINCREMENT = FTI_AUTOINCREMENT');
-    SQL.Add('FROM "' + rutaTemp + '\SDETALLEVENTA"');
+    SQL.Add('FROM       "' + rutaTemp + '\SDETALLEVENTA"');
     SQL.Add('INNER JOIN "' + rutaTemp + '\SOPERACIONINV"' + ' ON FDI_OPERACION_AUTOINCREMENT = FTI_AUTOINCREMENT');
-    
 
-    SQL.Add('WHERE FDI_STATUS = 1');
-
-    SQL.Add('AND FDI_TIPOOPERACION IN (11,12)');
-    SQL.Add('AND FDI_FECHAOPERACION BETWEEN :F1 AND :F2 ');
+    SQL.Add('WHERE FDI_TIPOOPERACION IN (11,12) ');
+    SQL.Add('  AND FDI_STATUS = 1');
+    SQL.Add('  AND FDI_FECHAOPERACION BETWEEN :F1 AND :F2 ');
 
     if chkVendedor.Checked and (cbVendedores.ItemIndex > 0)  then
     begin
@@ -2213,18 +2286,8 @@ begin
 
     SQL.Add('GROUP BY FDI_CODIGO');
 
-    if chkFechaExtendida.Checked then
-    begin
-      ParamByName('F1').AsDate := dtpFechaPeriodoVentas.Date;
-      ParamByName('F2').AsDate := Now();
-    end
-    else
-    begin
-      ParamByName('F1').AsDate := dtpFechaPeriodoVentas.Date;
-      ParamByName('F2').AsDate := EndOfAMonth(YearOf(dtpFechaPeriodoVentas.Date),
-                                               MonthOf(dtpFechaPeriodoVentas.Date));
-
-    end;
+    ParamByName('F1').AsDate := dtpFechaIni.Date;
+    ParamByName('F2').AsDate := dtpFechaFin.Date;
 
     Memo1.Lines.Add(SQL.Text);
     ExecSQL;
@@ -2237,14 +2300,14 @@ end;
 
 procedure TfMainReport.spbCalcularReportClick(Sender: TObject);
 begin
-  //importarDataHAC;
-
   if CardPanel1.ActiveCardIndex  = 1 then
   begin
-    if dtpFechaPeriodoVentas.Date < EncodeDate(1990,1,1) then
+    if (dtpFechaIni.Date < EncodeDate(1990,1,1)) and (dtpFechaFin.Date < EncodeDate(1990,1,1)) then
       Exit;
+
     if chkVendedor.Checked and (cbVendedores.ItemIndex < 0) then
       Exit;
+
       calcularReporte(tipoReport);
   end
   else
@@ -2265,15 +2328,17 @@ begin
     SQL.Clear;
 
     SQL.Add('');
-    SQL.Add('SELECT  CODIGO, REFERENCIA, [REF. PROV.], [DETALLE CATEGORIA], [DETALLE SUB CAT.], ');
-    SQL.Add('    [CATEGORIA], [SUB CAT.], [DESCRIPCION DEL PRODUCTO], MARCA, MODELO, [COSTO PROM.],');
-    SQL.Add('    [COSTO ACTUAL], [PRECIO], [UTILIDAD %], ALMACEN, TIENDA, MEZZANINA, [TOT. DISP. VTA.],');   //hasta columna 18
+    SQL.Add('SELECT  CODIGO, REFERENCIA, [REF. PROV.], [DETALLE CATEGORIA], ');
+    SQL.Add('   [DETALLE SUB CAT.], [CATEGORIA], [SUB CAT.], [DESCRIPCION DEL PRODUCTO], ');
 
+    //*******************************************************************************************
+    // Si el usuario esta en la lista de Exclusion se eliminan 3 columnas 2 de Costos y 1 Utilidad
+    if (Pos(IntToStr(userIndex), reportComEx) > 0)  then
+      SQL.Add('   MARCA, MODELO, [PRECIO], ')
+    else
+      SQL.Add('   MARCA, MODELO, [COSTO PROM.], [COSTO ACTUAL], [PRECIO], [UTILIDAD %], ');
 
-    //[VTA. PROM. MES]  AR
-    //ALMACEN           O
-    //TIENDA            P
-    //SQL.Add('');
+    SQL.Add('   ALMACEN, TIENDA, MEZZANINA, CCERAMICO, CONSTRUCTOR, [TOT. DISP. VTA.],');   //hasta columna 18
 
     SQL.Add('CASE WHEN ([VTA. PROM. MES] > 0.00) AND (ALMACEN >= 0.00) AND (TIENDA <> 0.00) THEN ');
     SQL.Add('          CAST(ROUND((([VTA. PROM. MES] / 30) * 8),0) AS VARCHAR(14))' );
@@ -2294,7 +2359,7 @@ begin
     //CALCULAR COLUMNA MINIMO REQUERIDO EN TIENDA		//19
     //SQL.Add('0.00 AS [MIN REQ. TIENDA 19],  ');
 
-    SQL.Add('    INSUMOS, DEFECTOS,	CCERAMICO, CONSTRUCTOR, [OC. ALMACEN], [OC. TIENDA],');
+    SQL.Add('    INSUMOS, DEFECTOS,	[OC. ALMACEN], [OC. TIENDA],');
     SQL.Add('    [COMPRA PROV.], [COMPRA ULT. FECHA],	[COMPRA ULT. CANT.], [RECEP. PROV.],');
     SQL.Add('    [RECEP. ULT. FECHA],	[RECEP. ULT. CANT.], [PROV. ASIGNADO], [FECHA CREACION],');
     SQL.Add('    UNIDAD, CAPACIDAD,	');
@@ -2339,8 +2404,6 @@ begin
     Open;
   end;
 
-
-
 end;
 
 
@@ -2349,7 +2412,6 @@ begin
   spbCalcularReport.Enabled := False;
   spbExportExcel.Enabled    := False;
   lblExport.Caption         := 'Espere... Generando Exportación de Datos';
-  //lblExport.Visible         := True;
 
   {}
   if tipoReport = 1  then
@@ -2383,17 +2445,6 @@ begin
   spbCalcularReport.Enabled := False;
   spbExportTxt.Enabled      := False;
   lblExport.Caption         := 'Espere... Generando Exportación de Datos';
-  //lblExport.Visible         := True;
-
-  {with DM.SQL_Final do
-  begin
-    Close;
-    Active := False;
-    SQL.Clear;
-
-    SQL.Add('SELECT * FROM "' + rutaTemp + '\' + tablaReport + '"');
-    Open;
-  end;}
 
   if tipoReport = 1  then
     calcularOtrasColumnasCompra
@@ -2462,19 +2513,19 @@ begin
     SQL.Add('   IFNULL(FID_ALMACEN   THEN 0.00 ELSE FID_ALMACEN)   AS ALMACEN, ');  //15
     SQL.Add('   IFNULL(FID_TIENDA    THEN 0.00 ELSE FID_TIENDA)    AS TIENDA, ');   //16
     SQL.Add('   IFNULL(FID_MEZZANINA THEN 0.00 ELSE FID_MEZZANINA) AS MEZZANINA, ');//17
+    SQL.Add('   IFNULL(FID_CCERAMICO THEN 0.00 ELSE FID_CCERAMICO) AS CCERAMICO, ');     //22
+    SQL.Add('   IFNULL(FID_CONSTRUCT THEN 0.00 ELSE FID_CONSTRUCT) AS CONSTRUCTOR, ');   //23
 
     SQL.Add('   (IFNULL(FID_ALMACEN   THEN 0.00 ELSE FID_ALMACEN)  + ' +
             '    IFNULL(FID_TIENDA    THEN 0.00 ELSE FID_TIENDA)   + ' +
-            '    IFNULL(FID_MEZZANINA THEN 0.00 ELSE FID_MEZZANINA)) AS [TOT. DISP. VTA.], ');  //18
-
+            '    IFNULL(FID_MEZZANINA THEN 0.00 ELSE FID_MEZZANINA) + ' +
+            '    IFNULL(FID_CCERAMICO THEN 0.00 ELSE FID_CCERAMICO) + ' +
+            '    IFNULL(FID_CONSTRUCT THEN 0.00 ELSE FID_CONSTRUCT) ) AS [TOT. DISP. VTA.], ');  //18
 
     //AQUI VA EL CALCULO DE DOS COLUMNAS MAS //19
 
     SQL.Add('   IFNULL(FID_INSUMOS   THEN 0.00 ELSE FID_INSUMOS)   AS INSUMOS, ');        //20
     SQL.Add('   IFNULL(FID_DEFECTOS  THEN 0.00 ELSE FID_DEFECTOS)  AS DEFECTOS, ');       //21
-    SQL.Add('   IFNULL(FID_CCERAMICO THEN 0.00 ELSE FID_CCERAMICO) AS CCERAMICO, ');     //22
-    SQL.Add('   IFNULL(FID_CONSTRUCT THEN 0.00 ELSE FID_CONSTRUCT) AS CONSTRUCTOR, ');   //23
-
     SQL.Add('   IFNULL(FID_OCALMACEN THEN 0.00 ELSE FID_OCALMACEN)  AS [OC. ALMACEN], ');  //24
     SQL.Add('   IFNULL(FID_OCTIENDA  THEN 0.00 ELSE FID_OCTIENDA)   AS [OC. TIENDA], ');   //25
 
@@ -2567,6 +2618,7 @@ begin
 end;
 
 
+
 procedure TfMainReport.consultaFinalVentas;
 begin
   with DM.SQL_Final do
@@ -2601,10 +2653,10 @@ begin
 
     SQL.Add('INTO "' + rutaTemp + '\' + tablaReport + '"' );
     SQL.Add('FROM "' + rutaTemp + '\' + tablasBD[11] + '"' );
-    SQL.Add('INNER JOIN "' + rutaTemp + '\' + tablasBD[1] + '" ON FVD_CODIGO      = FI_CODIGO');
-    SQL.Add('INNER JOIN "' + rutaTemp + '\' + tablasBD[3] + '" ON FI_CATEGORIA    = FD_CODIGO');
-    SQL.Add('INNER JOIN "' + rutaTemp + '\' + tablasBD[4] + '" ON FI_SUBCATEGORIA = FDS_CODIGO');
-    SQL.Add('INNER JOIN "' + rutaTemp + '\' + tablasBD[6] + '" d ON FVD_DEPOSITO    = d.FD_CODIGO');
+    SQL.Add('LEFT  JOIN "' + rutaTemp + '\' + tablasBD[1] + '" ON FVD_CODIGO      = FI_CODIGO');
+    SQL.Add('LEFT  JOIN "' + rutaTemp + '\' + tablasBD[3] + '" ON FI_CATEGORIA    = FD_CODIGO');
+    SQL.Add('LEFT  JOIN "' + rutaTemp + '\' + tablasBD[4] + '" ON FI_SUBCATEGORIA = FDS_CODIGO');
+    SQL.Add('INNER JOIN "' + rutaTemp + '\' + tablasBD[6] + '" d ON FVD_DEPOSITO  = d.FD_CODIGO');
 
     if chkDepartamento.Checked then
     begin
@@ -2647,23 +2699,22 @@ var
   ExcelApp    : OleVariant;
   Workbook    : OleVariant;
   Worksheet   : OleVariant;
-  Table       : OleVariant;
+  TablaExpor  : OleVariant;
   Column, Row : Integer;
   FieldTypes  : array of TFieldType;
   FieldNames  : array of string;
   DataArray   : Variant;
-  respuesta   : Integer;
+  respuesta,
+  LastRow     : Integer;
 
 Begin
   ExcelApp := CreateOleObject('Excel.Application');
   try
     ExcelApp.Visible        := False; // Ocultar la ventana de Excel
     ExcelApp.ScreenUpdating := False; // Desactivar la actualización de pantalla
-
-    // Crear un nuevo libro de trabajo
-    Workbook        := ExcelApp.Workbooks.Add;
-    Worksheet       := Workbook.Worksheets[1];
-    Worksheet.Name  := 'Datos Exportados';
+    Workbook                := ExcelApp.Workbooks.Add;
+    Worksheet               := Workbook.Worksheets[1];
+    Worksheet.Name          := 'Datos Exportados';
 
     // Inicializar arreglos para nombres de campos y tipos de campos
     SetLength(FieldNames, DBQuery.FieldCount);
@@ -2684,18 +2735,18 @@ Begin
     begin
       case FieldTypes[Column] of
         ftString:
-          begin
-            // Aplicar formato de texto a la columna
-            if DBQuery.Fields[Column].FieldName = 'MIN REQ. TIENDA' then
-              Worksheet.Columns[Column + 2].NumberFormat := '0'
-            else
-              Worksheet.Columns[Column + 2].NumberFormat := '@';
-          end;
+        begin
+          // Aplicar formato de texto a la columna
+          if DBQuery.Fields[Column].FieldName = 'MIN REQ. TIENDA' then
+            Worksheet.Columns[Column + 2].NumberFormat := '0'
+          else
+            Worksheet.Columns[Column + 2].NumberFormat := '@';
+        end;
 
         ftInteger:
           Worksheet.Columns[Column + 2].NumberFormat := '0'; // Formato numérico
         ftFloat, ftCurrency:
-          Worksheet.Columns[Column + 2].NumberFormat := '0,00'; // Formato numérico
+          Worksheet.Columns[Column + 2].NumberFormat := '#.##0,00'; // Formato numérico
         ftDate, ftTime, ftDateTime:
           Worksheet.Columns[Column + 2].NumberFormat := 'dd/mm/yyyy'; // Formato de fecha
       end;
@@ -2719,12 +2770,12 @@ Begin
           ftFloat, ftCurrency:
             DataArray[Row, Column] := DBQuery.Fields[Column].AsVariant;
           ftDate, ftTime, ftDateTime:
-            begin
-              if DBQuery.Fields[Column].AsDateTime > EncodeDate(1950,1,1)  then
-                DataArray[Row, Column] := VarAsType(DBQuery.Fields[Column].AsDateTime, varDate);
-            end;
-          else
-            DataArray[Row, Column] := Null;
+          begin
+            if DBQuery.Fields[Column].AsDateTime > EncodeDate(1950,1,1)  then
+              DataArray[Row, Column] := VarAsType(DBQuery.Fields[Column].AsDateTime, varDate);
+          end;
+        else
+          DataArray[Row, Column] := Null;
         end;
       end;
       Inc(Row);
@@ -2735,57 +2786,80 @@ Begin
     Worksheet.Range['B11'].Resize[DBQuery.RecordCount, DBQuery.FieldCount].Value := DataArray;
 
     // Crear una tabla en Excel                                        a1
-    Table             := Worksheet.ListObjects.Add(1, Worksheet.Range['B10'].Resize[DBQuery.RecordCount + 1, DBQuery.FieldCount], 0);
-    Table.Name        := 'DatosExportados';
-    Table.TableStyle  := 'TableStyleMedium9'; // Estilo de tabla predefinido
+    TablaExpor             := Worksheet.ListObjects.Add(1, Worksheet.Range['B10'].Resize[DBQuery.RecordCount + 1, DBQuery.FieldCount], 0);
+    TablaExpor.Name        := 'DatosExportados';
+    TablaExpor.TableStyle  := 'TableStyleMedium9'; // Estilo de tabla predefinido
 
     // Ajustar el ancho de las columnas
     Worksheet.Columns.AutoFit;
 
     // Mostrar mensaje de éxito
     // Configurar la columna A con ancho 1
-    Worksheet.Columns[1].ColumnWidth := 1;
+    Worksheet.Columns[1].ColumnWidth          := 1;
 
     // Ocultar líneas de cuadrícula
-    ExcelApp.ActiveWindow.DisplayGridlines := False;
+    ExcelApp.ActiveWindow.DisplayGridlines    := False;
 
-    // Formatear la celda B2
-    Worksheet.Cells[2, 2].Value        := 'KSA HOME CENTER, C.A.';
-    Worksheet.Cells[2, 2].Font.Bold    := True;
-    Worksheet.Cells[2, 2].Font.Size    := 18;
+    // Formatear las celdas B2 hasta B6
+    Worksheet.Cells[2, 2].Value               := 'KSA HOME CENTER, C.A.';
+    Worksheet.Cells[2, 2].Font.Bold           := True;
+    Worksheet.Cells[2, 2].Font.Size           := 18;
     Worksheet.Cells[2, 2].HorizontalAlignment := -4131; // Alinear a la izquierda (-4131)
+
+    Worksheet.Cells[3, 2].Font.Size           := 10;
+    Worksheet.Cells[3, 2].Font.Name           := 'Arial';
+    Worksheet.Cells[5, 2].Font.Size           := 10;
+    Worksheet.Cells[5, 2].Font.Name           := 'Arial';
+    Worksheet.Cells[6, 2].Font.Size           := 10;
+    Worksheet.Cells[6, 2].Font.Name           := 'Arial';
 
     // Formatear la celda B3
     if tipoReport = 1 then
-      Worksheet.Cells[3, 2].Value        := 'ANALISIS DE COMPRAS REPOSICION INVENTARIO'
+      Worksheet.Cells[3, 2].Value   := 'ANALISIS DE COMPRAS REPOSICION INVENTARIO'
     else
-      Worksheet.Cells[3, 2].Value        := 'MOVIMIENTO DE UNIDADES VENDIDAS';
-
-    Worksheet.Cells[3, 2].Font.Size    := 10;
-    Worksheet.Cells[3, 2].Font.Name    := 'Arial';
+      Worksheet.Cells[3, 2].Value   := 'MOVIMIENTO DE UNIDADES VENDIDAS';
 
     // Formatear la celda B5 con la fecha del sistema
     if tipoReport = 1 then
     begin
-      Worksheet.Cells[5, 2].Value        := 'DESDE : ' + FormatDateTime('dd/mm/yyyy', wwDBDateTimePicker1.Date);
-      Worksheet.Cells[6, 2].Value        := 'HASTA : ' + FormatDateTime('dd/mm/yyyy', Periodos[nPeriodo].FechaF );
+      Worksheet.Cells[5, 2].Value := 'DESDE : ' + FormatDateTime('dd/mm/yyyy', dtpFechaIniCom.Date);
+      Worksheet.Cells[6, 2].Value := 'HASTA : ' + FormatDateTime('dd/mm/yyyy', Periodos[nPeriodo].FechaF );
     end
     else
     begin
-      Worksheet.Cells[5, 2].Value        := 'DESDE : ' + FormatDateTime('dd/mm/yyyy', dtpFechaPeriodoVentas.Date);
-      Worksheet.Cells[6, 2].Value        := 'HASTA : ' + FormatDateTime('dd/mm/yyyy', Now);
+      Worksheet.Cells[5, 2].Value := 'DESDE : ' + FormatDateTime('dd/mm/yyyy', dtpFechaIni.Date);
+      Worksheet.Cells[6, 2].Value := 'HASTA : ' + FormatDateTime('dd/mm/yyyy', dtpFechaFin.Date);
+
+      // Usar un bucle for para establecer subtotales
+      try
+        var nombreColumna: string; // Declaración de la variable dentro del bloque try
+        var rangeColumna: string; // Declaración de la variable dentro del bloque try
+        TablaExpor.ShowTotals := True;
+        for Column := 10 to 16 do
+        begin
+          // Obtener el nombre de la columna de la tabla
+          nombreColumna := TablaExpor.HeaderRowRange.Cells[1, Column-1].Value;
+          //rangeColumna := Format('R%dC%d:R%dC%d', [11, Column, DBQuery.RecordCount + 10, Column]);
+          // Verificar que el nombre de la columna no esté vacío o sea inválido
+          if VarIsNull(nombreColumna) or (Trim(nombreColumna) = '') then
+            raise Exception.CreateFmt('Nombre de columna no válido en la columna %d', [Column]);
+
+          // Aplicar la fórmula SUBTOTALES a la fila de totales en la columna correspondiente
+          Worksheet.Cells[DBQuery.RecordCount + 11, Column ].Formula   :=
+            Format('='+'SUBTOTALES(109,[%s])', [nombreColumna]);
+        end;
+      except
+        on E: Exception do
+        begin
+          // Manejo de errores: mostrar mensaje de advertencia o registrar el error
+          MessageDlg('Error al generar la fórmula de subtotales: ' + E.Message, mtWarning, [mbOK], 0);
+        end;
+      end;
     end;
-
-    Worksheet.Cells[5, 2].Font.Size    := 10;
-    Worksheet.Cells[5, 2].Font.Name    := 'Arial';
-
-    // Formatear la celda B5 con la fecha del sistema
-    Worksheet.Cells[6, 2].Font.Size    := 10;
-    Worksheet.Cells[6, 2].Font.Name    := 'Arial';
-
 
     respuesta := MessageDlg('Exportación completada. ' + #13#10 + 'Verifique el archivo de Excel.',
                              TMsgDlgType.mtInformation, [TMsgDlgBtn.mbOK], 0);
+
 
   finally
     // Mostrar la aplicación de Excel al usuario
@@ -2793,8 +2867,6 @@ Begin
     ExcelApp.ScreenUpdating := True; // Reactivar la actualización de pantalla
     ExcelApp                := Unassigned;
   end;
-
-
 end;
 
 
@@ -2847,7 +2919,8 @@ begin
             DBQuery.Next;
           end;
           // Mostrar mensaje de éxito
-          MessageDlg('Exportación a archivo de texto completada. ' + #13#10 + 'Verifique el archivo: ' + FileName,
+          MessageDlg('Exportación a archivo de texto completada. ' + #13#10 +
+                     'Verifique el archivo: ' + FileName,
                      mtInformation, [mbOK], 0);
         except
           on E: Exception do
@@ -2981,19 +3054,25 @@ end; }
 function TfMainReport.usuarioTieneAcceso: Boolean;
 var
   IniFile             : TIniFile;
-  Report01, Report02  : string;
+  //Report01, Report02  : string;
   UserIndexStr        : string;
 begin
   Result        := False; // Inicializa como falso, ya que estamos buscando permiso
-  archivoINI    := ExtractFilePath(ParamStr(0)) + 'config.ini';
+  //archivoINI    := ExtractFilePath(ParamStr(0)) + 'config.ini';
   UserIndexStr  := IntToStr(userIndex);
-  IniFile := TIniFile.Create(archivoINI);
+  IniFile       := TIniFile.Create(archivoINI);
   try
-    Report01 := IniFile.ReadString('REPORT', 'REPORT01', '');
-    Report02 := IniFile.ReadString('REPORT', 'REPORT02', '');
+    //*Report01 := IniFile.ReadString('REPORT', 'REPORT01', '');
+    //Report02 := IniFile.ReadString('REPORT', 'REPORT02', '');
     // Verifica si el UserIndex está en Report01 o Report02
-    if (Pos(UserIndexStr, Report01) > 0) or (Pos(UserIndexStr, Report02) > 0) then
+    if (Pos(UserIndexStr, reportComAc) > 0) or (Pos(UserIndexStr, reportVtaAc) > 0) then
     begin
+      if (Pos(UserIndexStr, reportComAc) > 0) then
+        MainMenu1.Items[1].Items[0].Enabled := True;      //Menu Reportes -> Compras
+
+      if (Pos(UserIndexStr, reportVtaAc) > 0) then
+        MainMenu1.Items[1].Items[1].Enabled := True;
+
       Result := True; // El usuario tiene acceso
     end;
   finally
@@ -3003,10 +3082,18 @@ begin
 end;
 
 
-
-procedure TfMainReport.wwDBDateTimePicker1Change(Sender: TObject);
+procedure TfMainReport.dtpFechaDataFinChange(Sender: TObject);
 begin
-  if (wwDBDateTimePicker1.Date <> 0) and (not VarIsNull(wwDBDateTimePicker1.Date)) then
+  periodos[7].Periodo := mesesPeriodo[MonthOf(dtpFechaDataFin.Date)] + '-' +
+                         Format('%.2d', [DayOf(dtpFechaDataFin.Date)]) ;  //'DATA';
+  Periodos[7].FechaI  := dtpFechaDataIni.Date;
+  Periodos[7].FechaF  := dtpFechaDataFin.Date;
+end;
+
+
+procedure TfMainReport.dtpFechaIniComChange(Sender: TObject);
+begin
+  if (dtpFechaIniCom.Date <> 0) and (not VarIsNull(dtpFechaIniCom.Date)) then
   begin
     calcularPeriodos;
     spbCalcularReport.Enabled := True;
@@ -3016,7 +3103,7 @@ begin
   begin
     // Si la fecha es nula o vacía, deshabilitar botones y mostrar un mensaje de advertencia
     spbCalcularReport.Enabled := False;
-    spbExportExcel.Enabled := False;
+    spbExportExcel.Enabled    := False;
     ShowMessage('Por favor, seleccione una fecha válida.');
   end;
 

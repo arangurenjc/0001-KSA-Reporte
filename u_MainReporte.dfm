@@ -4,8 +4,8 @@ object fMainReport: TfMainReport
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'Menu Principal Inventario y Reportes'
-  ClientHeight = 464
-  ClientWidth = 553
+  ClientHeight = 504
+  ClientWidth = 551
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -23,8 +23,8 @@ object fMainReport: TfMainReport
   TextHeight = 13
   object lblExport: TLabel
     Left = 0
-    Top = 389
-    Width = 553
+    Top = 394
+    Width = 551
     Height = 58
     Align = alBottom
     Alignment = taCenter
@@ -37,13 +37,14 @@ object fMainReport: TfMainReport
     ParentFont = False
     Layout = tlCenter
     StyleElements = []
+    ExplicitTop = 389
     ExplicitWidth = 542
   end
   object Memo1: TMemo
-    Left = 592
+    Left = 864
     Top = 24
     Width = 748
-    Height = 256
+    Height = 370
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
@@ -56,8 +57,8 @@ object fMainReport: TfMainReport
   end
   object ProgressBar1: TProgressBar
     Left = 0
-    Top = 447
-    Width = 553
+    Top = 452
+    Width = 551
     Height = 17
     Align = alBottom
     Smooth = True
@@ -67,7 +68,8 @@ object fMainReport: TfMainReport
     TabOrder = 1
     Visible = False
     StyleElements = []
-    ExplicitWidth = 555
+    ExplicitTop = 458
+    ExplicitWidth = 1632
   end
   object Button1: TButton
     Left = 754
@@ -113,8 +115,8 @@ object fMainReport: TfMainReport
     AlignWithMargins = True
     Left = 20
     Top = 20
-    Width = 345
-    Height = 349
+    Width = 349
+    Height = 354
     Margins.Left = 20
     Margins.Top = 20
     Margins.Bottom = 20
@@ -124,21 +126,23 @@ object fMainReport: TfMainReport
     Caption = 'CardPanel1'
     TabOrder = 6
     Visible = False
+    ExplicitHeight = 360
     object cardCompras: TCard
       Left = 0
       Top = 0
-      Width = 345
-      Height = 349
+      Width = 349
+      Height = 354
       BevelInner = bvRaised
       BevelOuter = bvLowered
       BevelWidth = 2
       Caption = 'COM'
       CardIndex = 0
       TabOrder = 0
+      ExplicitHeight = 360
       object Label1: TLabel
         Left = 4
         Top = 4
-        Width = 337
+        Width = 341
         Height = 37
         Align = alTop
         Alignment = taCenter
@@ -151,31 +155,32 @@ object fMainReport: TfMainReport
         Font.Style = [fsBold]
         ParentFont = False
         Layout = tlCenter
+        ExplicitWidth = 337
       end
       object GroupBox1: TGroupBox
         Left = 50
         Top = 65
         Width = 241
-        Height = 121
+        Height = 88
         Caption = 'Ventas Acumuladas de los ultimos Meses'
         TabOrder = 0
         object Label2: TLabel
-          Left = 21
+          Left = 16
           Top = 28
           Width = 96
           Height = 13
           Caption = 'Fecha Inicio Periodo'
         end
         object Label3: TLabel
-          Left = 21
-          Top = 58
+          Left = 28
+          Top = 59
           Width = 141
           Height = 13
           Caption = 'Cant. Periodos Acumulados : '
         end
         object lblCantPeriodos: TLabel
-          Left = 168
-          Top = 58
+          Left = 181
+          Top = 57
           Width = 7
           Height = 16
           Caption = '0'
@@ -186,8 +191,8 @@ object fMainReport: TfMainReport
           Font.Style = [fsBold]
           ParentFont = False
         end
-        object wwDBDateTimePicker1: TwwDBDateTimePicker
-          Left = 124
+        object dtpFechaIniCom: TwwDBDateTimePicker
+          Left = 118
           Top = 25
           Width = 95
           Height = 21
@@ -200,22 +205,12 @@ object fMainReport: TfMainReport
           ShowButton = True
           TabOrder = 0
           DisplayFormat = 'DD/MM/YYYY'
-          OnChange = wwDBDateTimePicker1Change
-        end
-        object chkData: TCheckBox
-          Left = 21
-          Top = 84
-          Width = 172
-          Height = 17
-          Caption = 'Incluir Data del Periodo Actual'
-          Checked = True
-          State = cbChecked
-          TabOrder = 1
+          OnChange = dtpFechaIniComChange
         end
       end
       object chkStatus_Inv: TCheckBox
         Left = 50
-        Top = 208
+        Top = 284
         Width = 233
         Height = 17
         Caption = 'Incluir Productos de Inventario Inactivos'
@@ -225,7 +220,7 @@ object fMainReport: TfMainReport
       end
       object chkStatus_Prov: TCheckBox
         Left = 50
-        Top = 224
+        Top = 307
         Width = 233
         Height = 17
         Caption = 'Incluir Proveedores Inactivos'
@@ -233,22 +228,87 @@ object fMainReport: TfMainReport
         State = cbChecked
         TabOrder = 2
       end
+      object GroupBox2: TGroupBox
+        Left = 50
+        Top = 159
+        Width = 241
+        Height = 114
+        Caption = 'DATA del Per'#237'odo Actual '
+        TabOrder = 3
+        object Label7: TLabel
+          Left = 20
+          Top = 42
+          Width = 72
+          Height = 13
+          Caption = 'Fecha  Desde :'
+        end
+        object Label8: TLabel
+          Left = 20
+          Top = 73
+          Width = 73
+          Height = 13
+          Caption = 'Fecha Hasta   :'
+        end
+        object dtpFechaDataFin: TwwDBDateTimePicker
+          Left = 110
+          Top = 70
+          Width = 95
+          Height = 21
+          CalendarAttributes.Font.Charset = DEFAULT_CHARSET
+          CalendarAttributes.Font.Color = clWindowText
+          CalendarAttributes.Font.Height = -11
+          CalendarAttributes.Font.Name = 'Tahoma'
+          CalendarAttributes.Font.Style = []
+          Epoch = 1950
+          ShowButton = True
+          TabOrder = 1
+          DisplayFormat = 'DD/MM/YYYY'
+          OnChange = dtpFechaDataFinChange
+        end
+        object dtpFechaDataIni: TwwDBDateTimePicker
+          Left = 110
+          Top = 39
+          Width = 95
+          Height = 21
+          CalendarAttributes.Font.Charset = DEFAULT_CHARSET
+          CalendarAttributes.Font.Color = clWindowText
+          CalendarAttributes.Font.Height = -11
+          CalendarAttributes.Font.Name = 'Tahoma'
+          CalendarAttributes.Font.Style = []
+          Epoch = 1950
+          ShowButton = True
+          TabOrder = 0
+          DisplayFormat = 'DD/MM/YYYY'
+        end
+        object chkData: TCheckBox
+          Left = 20
+          Top = 19
+          Width = 172
+          Height = 17
+          Caption = 'Incluir Data del Periodo Actual'
+          Checked = True
+          State = cbChecked
+          TabOrder = 2
+          Visible = False
+        end
+      end
     end
     object cardVentas: TCard
       Left = 0
       Top = 0
-      Width = 345
-      Height = 349
+      Width = 349
+      Height = 354
       BevelInner = bvRaised
       BevelOuter = bvLowered
       BevelWidth = 2
       Caption = 'VTA'
       CardIndex = 1
       TabOrder = 1
+      ExplicitHeight = 360
       object Label4: TLabel
         Left = 4
         Top = 4
-        Width = 337
+        Width = 341
         Height = 37
         Align = alTop
         Alignment = taCenter
@@ -263,17 +323,25 @@ object fMainReport: TfMainReport
         Layout = tlCenter
         ExplicitLeft = 8
         ExplicitTop = 12
+        ExplicitWidth = 337
       end
       object Label5: TLabel
         Left = 57
-        Top = 79
+        Top = 66
         Width = 69
         Height = 13
         Caption = 'Desde Fecha :'
       end
+      object Label6: TLabel
+        Left = 57
+        Top = 99
+        Width = 67
+        Height = 13
+        Caption = 'Hasta Fecha :'
+      end
       object cbVendedores: TwwDBComboBox
         Left = 57
-        Top = 167
+        Top = 175
         Width = 215
         Height = 21
         ShowButton = True
@@ -288,9 +356,9 @@ object fMainReport: TfMainReport
         UnboundDataType = wwDefault
         OnChange = cbVendedoresChange
       end
-      object dtpFechaPeriodoVentas: TwwDBDateTimePicker
-        Left = 57
-        Top = 95
+      object dtpFechaIni: TwwDBDateTimePicker
+        Left = 151
+        Top = 63
         Width = 121
         Height = 21
         CalendarAttributes.Font.Charset = DEFAULT_CHARSET
@@ -304,24 +372,26 @@ object fMainReport: TfMainReport
       end
       object chkVendedor: TCheckBox
         Left = 57
-        Top = 150
+        Top = 158
         Width = 121
         Height = 17
         Caption = 'Filtrar por Vendedor'
         TabOrder = 2
         OnClick = chkVendedorClick
       end
-      object chkFechaExtendida: TCheckBox
+      object chkProductosInactivos: TCheckBox
         Left = 57
-        Top = 118
+        Top = 126
         Width = 215
         Height = 17
-        Caption = 'Usar fecha extendida hasta fecha actual'
+        Caption = 'Incluir Productos Inactivos'
+        Checked = True
+        State = cbChecked
         TabOrder = 3
       end
       object chkDepartamento: TCheckBox
         Left = 57
-        Top = 197
+        Top = 205
         Width = 144
         Height = 17
         Caption = 'Filtrar por Departamento'
@@ -330,7 +400,7 @@ object fMainReport: TfMainReport
       end
       object cbDepartamentos: TwwDBComboBox
         Left = 57
-        Top = 214
+        Top = 222
         Width = 215
         Height = 21
         ShowButton = True
@@ -347,7 +417,7 @@ object fMainReport: TfMainReport
       end
       object chkDeposito: TCheckBox
         Left = 57
-        Top = 241
+        Top = 249
         Width = 144
         Height = 17
         Caption = 'Filtrar por Dep'#243'sito'
@@ -356,7 +426,7 @@ object fMainReport: TfMainReport
       end
       object cbDepositos: TwwDBComboBox
         Left = 57
-        Top = 258
+        Top = 266
         Width = 215
         Height = 21
         ShowButton = True
@@ -371,14 +441,28 @@ object fMainReport: TfMainReport
         UnboundDataType = wwDefault
         OnChange = cbDepositosChange
       end
+      object dtpFechaFin: TwwDBDateTimePicker
+        Left = 151
+        Top = 96
+        Width = 121
+        Height = 21
+        CalendarAttributes.Font.Charset = DEFAULT_CHARSET
+        CalendarAttributes.Font.Color = clWindowText
+        CalendarAttributes.Font.Height = -11
+        CalendarAttributes.Font.Name = 'Tahoma'
+        CalendarAttributes.Font.Style = []
+        Epoch = 1950
+        ShowButton = True
+        TabOrder = 8
+      end
     end
   end
-  object Panel1: TPanel
+  object pnlBotonesCalculo: TPanel
     AlignWithMargins = True
-    Left = 371
+    Left = 375
     Top = 20
     Width = 154
-    Height = 349
+    Height = 354
     Margins.Top = 20
     Margins.Bottom = 20
     Align = alLeft
@@ -387,10 +471,11 @@ object fMainReport: TfMainReport
     BevelOuter = bvLowered
     TabOrder = 7
     Visible = False
+    ExplicitHeight = 360
     object spbExportExcel: TSpeedButton
       AlignWithMargins = True
       Left = 5
-      Top = 143
+      Top = 148
       Width = 140
       Height = 71
       Margins.Bottom = 30
@@ -432,7 +517,7 @@ object fMainReport: TfMainReport
     object spbExportTxt: TSpeedButton
       AlignWithMargins = True
       Left = 5
-      Top = 247
+      Top = 252
       Width = 140
       Height = 71
       Margins.Bottom = 25
@@ -481,6 +566,79 @@ object fMainReport: TfMainReport
     Visible = False
     OnClick = Button3Click
   end
+  object pnlInfoApp: TPanel
+    Left = 0
+    Top = 469
+    Width = 551
+    Height = 35
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 11
+    object scLabel2: TscLabel
+      Left = 182
+      Top = 0
+      Width = 369
+      Height = 35
+      Align = alClient
+      DragMode = dmAutomatic
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentFont = False
+      FluentUIOpaque = False
+      TabOrder = 0
+      DragForm = True
+      DragTopForm = True
+      GlowEffect.Enabled = True
+      GlowEffect.Color = clActiveBorder
+      GlowEffect.AlphaValue = 255
+      GlowEffect.GlowSize = 7
+      GlowEffect.Offset = 2
+      GlowEffect.Intensive = True
+      GlowEffect.StyleColors = True
+      AutoSize = False
+      VertAlignment = scvtaCenter
+      UseFontColorToStyleColor = True
+      Caption = 
+        'desarrollado por A2CONSULTORES ARAGUA, C.A.'#169'   '#13#10'(Todos los dere' +
+        'chos reservados)'
+      ExplicitWidth = 283
+      ExplicitHeight = 41
+    end
+    object scLabel3: TscLabel
+      Left = 0
+      Top = 0
+      Width = 182
+      Height = 35
+      Align = alLeft
+      DragMode = dmAutomatic
+      Font.Charset = ANSI_CHARSET
+      Font.Color = clBlack
+      Font.Height = -11
+      Font.Name = 'Arial'
+      Font.Style = []
+      ParentFont = False
+      FluentUIOpaque = False
+      TabOrder = 1
+      DragForm = True
+      DragTopForm = True
+      GlowEffect.Enabled = True
+      GlowEffect.Color = clActiveBorder
+      GlowEffect.AlphaValue = 255
+      GlowEffect.GlowSize = 7
+      GlowEffect.Offset = 2
+      GlowEffect.Intensive = True
+      GlowEffect.StyleColors = True
+      AutoSize = False
+      Alignment = taCenter
+      VertAlignment = scvtaCenter
+      UseFontColorToStyleColor = True
+      Caption = 'appReporte '#13#10'Versi'#243'n 1.0.0 251024'
+      ExplicitHeight = 41
+    end
+  end
   object MainMenu1: TMainMenu
     Left = 464
     Top = 400
@@ -488,16 +646,19 @@ object fMainReport: TfMainReport
       Caption = 'Inventario'
       object G1: TMenuItem
         Caption = 'Garantia'
+        Enabled = False
       end
     end
     object R1: TMenuItem
       Caption = 'Reporte'
       object c1: TMenuItem
         Caption = 'Compras'
+        Enabled = False
         OnClick = c1Click
       end
       object V1: TMenuItem
         Caption = 'Ventas'
+        Enabled = False
         OnClick = V1Click
       end
     end
@@ -3031,8 +3192,8 @@ object fMainReport: TfMainReport
               8410420821B9E7BFD25FA9EA3074A6490000000049454E44AE426082}
           end>
       end>
-    Left = 120
-    Top = 312
+    Left = 472
+    Top = 208
   end
   object imgList: TVirtualImageList
     DisabledGrayscale = False
@@ -3077,7 +3238,7 @@ object fMainReport: TfMainReport
     ImageCollection = imgCollection
     Width = 32
     Height = 32
-    Left = 224
-    Top = 312
+    Left = 576
+    Top = 208
   end
 end

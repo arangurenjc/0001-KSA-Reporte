@@ -22,7 +22,7 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  TStyleManager.TrySetStyle('Luna');
+  TStyleManager.TrySetStyle('Sky');
   Application.CreateForm(TDM, DM);
   Application.CreateForm(TfMainReport, fMainReport);
   Application.CreateForm(TfAcceso, fAcceso);
