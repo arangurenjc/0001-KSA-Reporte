@@ -5,7 +5,7 @@ object fMainReport: TfMainReport
   BorderStyle = bsSingle
   Caption = 'Menu Principal Inventario y Reportes'
   ClientHeight = 504
-  ClientWidth = 551
+  ClientWidth = 553
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -24,7 +24,7 @@ object fMainReport: TfMainReport
   object lblExport: TLabel
     Left = 0
     Top = 394
-    Width = 551
+    Width = 553
     Height = 58
     Align = alBottom
     Alignment = taCenter
@@ -41,9 +41,9 @@ object fMainReport: TfMainReport
     ExplicitWidth = 542
   end
   object Memo1: TMemo
-    Left = 864
-    Top = 24
-    Width = 748
+    Left = 566
+    Top = 18
+    Width = 851
     Height = 370
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -58,7 +58,7 @@ object fMainReport: TfMainReport
   object ProgressBar1: TProgressBar
     Left = 0
     Top = 452
-    Width = 551
+    Width = 553
     Height = 17
     Align = alBottom
     Smooth = True
@@ -68,12 +68,11 @@ object fMainReport: TfMainReport
     TabOrder = 1
     Visible = False
     StyleElements = []
-    ExplicitTop = 458
-    ExplicitWidth = 1632
+    ExplicitWidth = 550
   end
   object Button1: TButton
-    Left = 754
-    Top = 286
+    Left = 1432
+    Top = 107
     Width = 75
     Height = 25
     Caption = 'Button1'
@@ -81,16 +80,16 @@ object fMainReport: TfMainReport
     OnClick = Button1Click
   end
   object Edit1: TEdit
-    Left = 627
-    Top = 312
+    Left = 1432
+    Top = 151
     Width = 243
     Height = 21
     TabOrder = 3
     Text = 'Edit1'
   end
   object Button2: TButton
-    Left = 876
-    Top = 312
+    Left = 1432
+    Top = 240
     Width = 25
     Height = 23
     Caption = 'Button2'
@@ -98,8 +97,8 @@ object fMainReport: TfMainReport
     OnClick = Button2Click
   end
   object wwDBDateTimePicker2: TwwDBDateTimePicker
-    Left = 627
-    Top = 288
+    Left = 1432
+    Top = 80
     Width = 121
     Height = 21
     CalendarAttributes.Font.Charset = DEFAULT_CHARSET
@@ -121,12 +120,11 @@ object fMainReport: TfMainReport
     Margins.Top = 20
     Margins.Bottom = 20
     Align = alLeft
-    ActiveCard = cardCompras
+    ActiveCard = cardVentas
     BevelOuter = bvNone
     Caption = 'CardPanel1'
     TabOrder = 6
     Visible = False
-    ExplicitHeight = 360
     object cardCompras: TCard
       Left = 0
       Top = 0
@@ -138,7 +136,6 @@ object fMainReport: TfMainReport
       Caption = 'COM'
       CardIndex = 0
       TabOrder = 0
-      ExplicitHeight = 360
       object Label1: TLabel
         Left = 4
         Top = 4
@@ -237,21 +234,21 @@ object fMainReport: TfMainReport
         TabOrder = 3
         object Label7: TLabel
           Left = 20
-          Top = 42
+          Top = 38
           Width = 72
           Height = 13
           Caption = 'Fecha  Desde :'
         end
         object Label8: TLabel
           Left = 20
-          Top = 73
+          Top = 69
           Width = 73
           Height = 13
           Caption = 'Fecha Hasta   :'
         end
         object dtpFechaDataFin: TwwDBDateTimePicker
           Left = 110
-          Top = 70
+          Top = 66
           Width = 95
           Height = 21
           CalendarAttributes.Font.Charset = DEFAULT_CHARSET
@@ -267,7 +264,7 @@ object fMainReport: TfMainReport
         end
         object dtpFechaDataIni: TwwDBDateTimePicker
           Left = 110
-          Top = 39
+          Top = 35
           Width = 95
           Height = 21
           CalendarAttributes.Font.Charset = DEFAULT_CHARSET
@@ -304,7 +301,6 @@ object fMainReport: TfMainReport
       Caption = 'VTA'
       CardIndex = 1
       TabOrder = 1
-      ExplicitHeight = 360
       object Label4: TLabel
         Left = 4
         Top = 4
@@ -455,6 +451,23 @@ object fMainReport: TfMainReport
         ShowButton = True
         TabOrder = 8
       end
+      object wwDBDateTimePicker1: TwwDBDateTimePicker
+        Left = 222
+        Top = 124
+        Width = 95
+        Height = 21
+        CalendarAttributes.Font.Charset = DEFAULT_CHARSET
+        CalendarAttributes.Font.Color = clWindowText
+        CalendarAttributes.Font.Height = -11
+        CalendarAttributes.Font.Name = 'Tahoma'
+        CalendarAttributes.Font.Style = []
+        Epoch = 1950
+        ShowButton = True
+        TabOrder = 9
+        DisplayFormat = 'DD/MM/YYYY'
+        Visible = False
+        OnChange = dtpFechaDataFinChange
+      end
     end
   end
   object pnlBotonesCalculo: TPanel
@@ -471,7 +484,6 @@ object fMainReport: TfMainReport
     BevelOuter = bvLowered
     TabOrder = 7
     Visible = False
-    ExplicitHeight = 360
     object spbExportExcel: TSpeedButton
       AlignWithMargins = True
       Left = 5
@@ -537,8 +549,8 @@ object fMainReport: TfMainReport
     end
   end
   object btnCalcular: TButton
-    Left = 560
-    Top = 339
+    Left = 1432
+    Top = 16
     Width = 101
     Height = 25
     Caption = 'Calcular'
@@ -547,8 +559,8 @@ object fMainReport: TfMainReport
     Visible = False
   end
   object btnExportExcel: TButton
-    Left = 667
-    Top = 339
+    Left = 1432
+    Top = 178
     Width = 101
     Height = 25
     Caption = 'Exportar Excel'
@@ -557,8 +569,8 @@ object fMainReport: TfMainReport
     OnClick = btnExportExcelClick
   end
   object Button3: TButton
-    Left = 774
-    Top = 339
+    Left = 1432
+    Top = 209
     Width = 101
     Height = 25
     Caption = 'Button3'
@@ -569,15 +581,16 @@ object fMainReport: TfMainReport
   object pnlInfoApp: TPanel
     Left = 0
     Top = 469
-    Width = 551
+    Width = 553
     Height = 35
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 11
+    ExplicitWidth = 550
     object scLabel2: TscLabel
       Left = 182
       Top = 0
-      Width = 369
+      Width = 371
       Height = 35
       Align = alClient
       DragMode = dmAutomatic
@@ -604,8 +617,7 @@ object fMainReport: TfMainReport
       Caption = 
         'desarrollado por A2CONSULTORES ARAGUA, C.A.'#169'   '#13#10'(Todos los dere' +
         'chos reservados)'
-      ExplicitWidth = 283
-      ExplicitHeight = 41
+      ExplicitWidth = 368
     end
     object scLabel3: TscLabel
       Left = 0
@@ -635,8 +647,7 @@ object fMainReport: TfMainReport
       Alignment = taCenter
       VertAlignment = scvtaCenter
       UseFontColorToStyleColor = True
-      Caption = 'appReporte '#13#10'Versi'#243'n 1.0.0 251024'
-      ExplicitHeight = 41
+      Caption = 'appReporte '#13#10'Versi'#243'n 1.0.0 28102024'
     end
   end
   object MainMenu1: TMainMenu
@@ -3192,8 +3203,8 @@ object fMainReport: TfMainReport
               8410420821B9E7BFD25FA9EA3074A6490000000049454E44AE426082}
           end>
       end>
-    Left = 472
-    Top = 208
+    Left = 440
+    Top = 128
   end
   object imgList: TVirtualImageList
     DisabledGrayscale = False

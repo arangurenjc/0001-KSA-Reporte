@@ -101,6 +101,7 @@ type
     scLabel2: TscLabel;
     scLabel3: TscLabel;
     pnlInfoApp: TPanel;
+    wwDBDateTimePicker1: TwwDBDateTimePicker;
 
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -159,7 +160,7 @@ type
       procedure crearTablaTMP_NotaE( idUser : Integer);
       procedure crearTablaTMP_InvDe( idUser : Integer);
       procedure crearTablaTMP_VtaAc( idUser : Integer);
-      PROCEDURE crearTablaTMP_VtaDe( idUser : Integer);
+      PROCEDURE crearTablaTMP_VtaDe( idUser : Integer; tabla : String);
 
       //PARA INSERTAR DATOS EN LAS TABLAS CREADAS
       procedure insertTablaTMP_Inven( tabla : string);
@@ -173,7 +174,7 @@ type
       procedure insertTablaTMP_NotaE( tabla : string);
       procedure insertTablaTMP_InvDe( tabla : string);
       procedure insertTablaTMP_VtaAc( tabla : string);
-      procedure insertTablaTMP_VtaDe( tabla : string);
+      procedure insertTablaTMP_VtaDe( tabla : string; rutaDatos:string; fechaI, fechaF : TDate);
 
       procedure consultaFinalCompras;
       procedure consultaFinalVentas;
@@ -201,7 +202,7 @@ var
   fMainReport : TfMainReport;
 
   archivoINI  : string;
-  tablasBD    : array[1..13] of string;
+  tablasBD    : array[1..14] of string;
   Periodos    : array[1..7] of TPeriodo;  // Array de 7 periodos
 
   {Periodos desde 1 hasta 6 para los 6 meses de consulta de venta
@@ -250,7 +251,7 @@ Const
     BD_INVD = 'B23';   //tmp_Inventario Deposito
     BD_VTAA = 'B24';   //tmp_Ventas Acaumuladas
     BD_VTAD = 'B25';   //tmp_Ventas detalle del periodo
-
+    BD_VTA2 = 'B26';   //tmp_Ventas detalle del periodo
 
     BD_ENDX = 'B50';   //tmp_Resultado de todas las consultas Movimiento Compras
     BD_ENDV = 'B51';   //tmp_Resultado de todas las consultas Movimiento Ventas
@@ -291,9 +292,10 @@ begin
   tablasBD[9]   :=  IntToStr(userIndex) + BD_INVD ;   //tmp_¨Inventario Deposito
   tablasBD[10]  :=  IntToStr(userIndex) + BD_VTAA ;   //tmp_¨Ventas Acaumuladas
   tablasBD[11]  :=  IntToStr(userIndex) + BD_VTAD ;   //tmp_¨Ventas Acaumuladas
+  tablasBD[12]  :=  IntToStr(userIndex) + BD_VTA2 ;   //tmp_¨Ventas Acaumuladas
 
-  tablasBD[12]  :=  IntToStr(userIndex) + BD_ENDX ;   //tmp_¨Todas las conultas agrupadas
-  tablasBD[13]  :=  IntToStr(userIndex) + BD_ENDV ;   //tmp_¨Ventas Acaumuladas
+  tablasBD[13]  :=  IntToStr(userIndex) + BD_ENDX ;   //tmp_¨Todas las conultas agrupadas
+  tablasBD[14]  :=  IntToStr(userIndex) + BD_ENDV ;   //tmp_¨Ventas Acaumuladas   BD_ENDV
 
   Memo1.Lines.Add('Lista de Tablas Asignadas : ');
   for i := 0 to High(tablasBD) do
@@ -566,7 +568,7 @@ begin
           insertTablaTMP_InvDe(#34 + rutaTemp + '\' + tablasBD[9] + #34);
           lblExport.Caption := 'Calculando Ventas acumuladas...';
           insertTablaTMP_VtaAc(#34 + rutaTemp + '\' + tablasBD[10] + #34);
-          tablaReport := tablasBD[12];
+          tablaReport := tablasBD[13];
           lblExport.Caption := 'Consolidando Reporte Final de Compras...';
           consultaFinalCompras;
         end
@@ -581,9 +583,14 @@ begin
           insertTablaTMP_SubCa(#34 + rutaTemp + '\' + tablasBD[4] + #34);
           lblExport.Caption := 'Importando Data Depósitos...';
           insertTablaTMP_Depo(#34 + rutaTemp + '\' + tablasBD[6] + #34);
+
           lblExport.Caption := 'Acumulado Ventas del período...';
-          insertTablaTMP_VtaDe(#34 + rutaTemp + '\' + tablasBD[11] + #34);
-          tablaReport := tablasBD[13];
+          insertTablaTMP_VtaDe(#34 + rutaTemp + '\' + tablasBD[11] + #34, rutaTemp, dtpFechaIni.Date, dtpFechaFin.Date);
+
+          if dtpFechaFin.Date = Now then //wwDBDateTimePicker1.Date then
+            insertTablaTMP_VtaDe(#34 + rutaTemp + '\' + tablasBD[11] + #34, rutaData, dtpFechaFin.Date, dtpFechaFin.Date);
+
+          tablaReport := tablasBD[14];           //BD_ENDV
           lblExport.Caption := 'Consolidando Reporte Final de Ventas...';
           consultaFinalVentas;
         end;
@@ -826,6 +833,7 @@ begin
   crearTablaTMP_NotaE(idUser);
   crearTablaTMP_InvDe(idUser);
   crearTablaTMP_VtaAc(idUser);
+
 end;
 
 
@@ -836,7 +844,8 @@ begin
   crearTablaTMP_Categ(idUser);
   crearTablaTMP_SubCa(idUser);
   crearTablaTMP_Depo(idUser);
-  crearTablaTMP_VtaDe(idUser);
+  crearTablaTMP_VtaDe(idUser, tablasBD[11]);
+  crearTablaTMP_VtaDe(idUser, tablasBD[12]);
 end;
 
 
@@ -1306,7 +1315,7 @@ end;
 {----------------------------------------------------------------------------11
      CREACION DE TABLA TEMPORAL PARA ALMACENAR LAS VENTAS ULTIMOS 6 MESES
 }
-procedure TfMainReport.crearTablaTMP_VtaDe(idUser: Integer);
+procedure TfMainReport.crearTablaTMP_VtaDe(idUser: Integer; tabla : String);
 var
   TableToCreate: TDBISAMTable;
 
@@ -1316,7 +1325,7 @@ begin
     with TableToCreate do
     begin
       DatabaseName :=  rutaTemp;
-      TableName    :=  tablasBD[11]; //IntToStr(idUser) + BD_VTAD;
+      TableName    :=  tabla; //IntToStr(idUser) + BD_VTAD;
       Exclusive    :=  True;
 
       if (not Exists) then
@@ -1324,6 +1333,7 @@ begin
         with FieldDefs do
         begin
           Clear;
+          Add('FVD_AUTO',ftAutoInc);
           Add('FVD_CODIGO',ftString,50);
           Add('FVD_DEPOSITO',ftInteger);
           Add('FVD_CANTIDAD',ftFloat);
@@ -1340,7 +1350,7 @@ begin
         with IndexDefs do
         begin
           Clear;
-          Add('','FVD_CODIGO',[ixPrimary, ixUnique], '', icNone, False);
+          Add('','FVD_AUTO',[ixPrimary, ixUnique ], '', icNone, False);
           Add('FVD_KEYCODIGO','FVD_CODIGO',[], '', icNone, False);
         end;
 
@@ -1381,6 +1391,7 @@ begin
   end;
 
 end;
+
 
 function TfMainReport.encapsularPeriodo(t: TDate): string;
 var
@@ -2155,7 +2166,7 @@ begin
 
     SQL.Add('GROUP BY FDI_CODIGO');
 
-    ParamByName('Fecha1').AsDate := Periodos[7].FechaI; //wwDBDateTimePicker1.MinDate;
+    ParamByName('Fecha1').AsDate := dtpFechaIniCom.Date; //Periodos[7].FechaI; //wwDBDateTimePicker1.MinDate;
 
     //if chkData.Checked = True then
       ParamByName('Fecha2').AsDate := Periodos[7].FechaF;
@@ -2170,9 +2181,7 @@ begin
 end;
 
 
-procedure TfMainReport.insertTablaTMP_VtaDe(tabla: string);
-
-
+procedure TfMainReport.insertTablaTMP_VtaDe(tabla : string; rutaDatos: string; fechaI, fechaF : TDate);
 begin
   with DM.SQL_Insert do
   begin
@@ -2180,13 +2189,15 @@ begin
     Active := False;
     SQL.Clear;
     Memo1.Lines.Add('================== Insertando Detalle Venta ==================');
-    SQL.Add('INSERT INTO ' + tabla);
+    SQL.Add('INSERT INTO ' + tabla + '(FVD_CODIGO, FVD_DEPOSITO, FVD_CANTIDAD, FVD_MTOBRUTO, ');
+    SQL.Add('                          FVD_DESCUENTO, FVD_MTONETO, FVD_IVA, FVD_COSTO, ');
+    SQL.Add('                          FVD_UTILIDADM, FVD_UTILIDADP)' );
+
     SQL.Add('SELECT FDI_CODIGO,');
     SQL.Add('   FDI_DEPOSITOSOURCE AS DEPOSITO,');
     SQL.Add('SUM(CASE WHEN FDI_TIPOOPERACION = 11 THEN FDI_CANTIDAD ' +
             '         WHEN FDI_TIPOOPERACION = 12 THEN FDI_CANTIDAD * -1 ' +
             '    END) AS CANTIDAD,');
-
 
     //Calcular Columna de MONTO BRUTO Aplicando compracion de Moneda USD - VES
     SQL.Add('SUM(CASE WHEN FDI_MONEDA = 1 THEN');
@@ -2265,8 +2276,8 @@ begin
 
     SQL.Add('0.00 AS [UTILIDAD %] ');
 
-    SQL.Add('FROM       "' + rutaTemp + '\SDETALLEVENTA"');
-    SQL.Add('INNER JOIN "' + rutaTemp + '\SOPERACIONINV"' + ' ON FDI_OPERACION_AUTOINCREMENT = FTI_AUTOINCREMENT');
+    SQL.Add('FROM       "' + rutaDatos + '\SDETALLEVENTA"');
+    SQL.Add('INNER JOIN "' + rutaDatos + '\SOPERACIONINV"' + ' ON FDI_OPERACION_AUTOINCREMENT = FTI_AUTOINCREMENT');
 
     SQL.Add('WHERE FDI_TIPOOPERACION IN (11,12) ');
     SQL.Add('  AND FDI_STATUS = 1');
@@ -2286,10 +2297,12 @@ begin
 
     SQL.Add('GROUP BY FDI_CODIGO');
 
-    ParamByName('F1').AsDate := dtpFechaIni.Date;
-    ParamByName('F2').AsDate := dtpFechaFin.Date;
+    ParamByName('F1').AsDate := fechaI; //dtpFechaIni.Date;
+    ParamByName('F2').AsDate := fechaF; //dtpFechaFin.Date;
 
     Memo1.Lines.Add(SQL.Text);
+    Memo1.Lines.Add('Fecha Ini : ' + DateToStr(fechaI));
+    Memo1.Lines.Add('Fecha Fin : ' + DateToStr(fechaF));
     ExecSQL;
     Close;
 
@@ -2642,14 +2655,14 @@ begin
     SQL.Add('   FVD_CODIGO         AS [PRODUCTO COD.], ');
     SQL.Add('   FI_DESCRIPCION     AS [PRODUCTO DESRIPCION], ');
 
-    SQL.Add('   FVD_CANTIDAD       AS CANTIDAD, ');
-    SQL.Add('   FVD_MTOBRUTO       AS [MONTO BRUTO],');
-    SQL.Add('   FVD_DESCUENTO      AS [DESCUENTOS],');
-    SQL.Add('   FVD_MTONETO        AS [MONTO NETO],');
-    SQL.Add('   FVD_IVA            AS [I.V.A.],');
-    SQL.Add('   FVD_COSTO          AS [COSTO],');
-    SQL.Add('   FVD_UTILIDADM      AS [UTILIDAD],');
-    SQL.Add('   (FVD_UTILIDADM / FVD_MTONETO) * 100     AS [UTILIDAD %]');
+    SQL.Add('   SUM(FVD_CANTIDAD)       AS CANTIDAD, ');
+    SQL.Add('   SUM(FVD_MTOBRUTO)       AS [MONTO BRUTO],');
+    SQL.Add('   SUM(FVD_DESCUENTO)      AS [DESCUENTOS],');
+    SQL.Add('   SUM(FVD_MTONETO)        AS [MONTO NETO],');
+    SQL.Add('   SUM(FVD_IVA)            AS [I.V.A.],');
+    SQL.Add('   SUM(FVD_COSTO)          AS [COSTO],');
+    SQL.Add('   SUM(FVD_UTILIDADM)      AS [UTILIDAD],');
+    SQL.Add('   (SUM(FVD_UTILIDADM) / SUM(FVD_MTONETO)) * 100     AS [UTILIDAD %]');
 
     SQL.Add('INTO "' + rutaTemp + '\' + tablaReport + '"' );
     SQL.Add('FROM "' + rutaTemp + '\' + tablasBD[11] + '"' );
@@ -2657,6 +2670,7 @@ begin
     SQL.Add('LEFT  JOIN "' + rutaTemp + '\' + tablasBD[3] + '" ON FI_CATEGORIA    = FD_CODIGO');
     SQL.Add('LEFT  JOIN "' + rutaTemp + '\' + tablasBD[4] + '" ON FI_SUBCATEGORIA = FDS_CODIGO');
     SQL.Add('INNER JOIN "' + rutaTemp + '\' + tablasBD[6] + '" d ON FVD_DEPOSITO  = d.FD_CODIGO');
+    SQL.Add('GROUP BY [PRODUCTO COD.]');
 
     if chkDepartamento.Checked then
     begin
